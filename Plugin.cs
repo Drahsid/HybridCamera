@@ -6,6 +6,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HybridCamera.Attributes;
 using ImGuiNET;
@@ -24,9 +25,9 @@ namespace HybridCamera
         private readonly Configuration config;
         private readonly WindowSystem windowSystem;
 
-        public string Name => "HybridCamera";
+        private MovementMode CameraMode = MovementMode.Standard;
 
-        [PluginService] public static KeyState KeyState { get; private set; }
+        public string Name => "HybridCamera";
 
         public Plugin(DalamudPluginInterface pi, CommandManager commands, ChatGui chat, ClientState clientState) {
             this.pluginInterface = pi;
@@ -43,7 +44,22 @@ namespace HybridCamera
                 this.config.legacyModeKeyList.Add(VirtualKey.A);
                 this.config.legacyModeKeyList.Add(VirtualKey.S);
                 this.config.legacyModeKeyList.Add(VirtualKey.D);
+                this.config.autorunMoveMode = new MoveModeCondition();
             }
+
+            if (this.config.autorunMoveMode == null)
+            {
+                this.config.autorunMoveMode = new MoveModeCondition();
+            }
+
+            if (this.config.cameraRotateMoveMode == null)
+            {
+                this.config.cameraRotateMoveMode = new MoveModeCondition();
+            }
+
+            KeybindHook.turnOnFrontpedal = this.config.useTurnOnFrontpedal;
+            KeybindHook.turnOnBackpedal = this.config.useTurnOnBackpedal;
+            KeybindHook.cameraTurnMode = this.config.useTurnOnCameraTurn;
 
             // Initialize the UI
             this.windowSystem = new WindowSystem(typeof(Plugin).AssemblyQualifiedName);
@@ -52,32 +68,59 @@ namespace HybridCamera
 
             // Load all of our commands
             this.commandManager = new PluginCommandManager<Plugin>(this, commands);
+
+            pluginInterface.Create<Service>();
+        }
+
+        private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg)
+        {
+            float charwidth = ImGui.CalcTextSize("FF").X;
+
+            ImGui.Checkbox($"Force {descriptor} to use mode: ", ref cfg.condition);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(charwidth * 8);
+            if (ImGui.BeginCombo($"Movement Mode###{descriptor}", cfg.mode.ToString())) {
+                for (int index = 0; index < (int)MovementMode.Count; index++)
+                {
+                    ImGui.SetNextItemWidth(charwidth * 8);
+                    if (ImGui.Selectable(((MovementMode)index).ToString(), index == (int)cfg.mode))
+                    {
+                        cfg.mode = (MovementMode)index;
+                    }
+                }
+                ImGui.EndCombo();
+            }
         }
 
         public unsafe void OnDraw()
         {
             ConfigModule* cm = ConfigModule.Instance();
+            MovementMode mode = MovementMode.Standard;
 
             if (cm != null)
             {
-                bool eval = false;
                 foreach (VirtualKey key in config.legacyModeKeyList)
                 {
-                    if (KeyState[key])
+                    if (Service.KeyState[key])
                     {
-                        eval = true;
+                        mode = MovementMode.Legacy;
                         break;
                     }
                 }
 
-                if (eval)
+                if (config.autorunMoveMode.condition && InputManager.IsAutoRunning())
                 {
-                    cm->SetOption(ConfigOption.MoveMode, 1); // set legacy mode
+                    mode = config.autorunMoveMode.mode;
                 }
-                else
+
+                if (config.cameraRotateMoveMode.condition && Service.PlayerIsRotatingCamera())
                 {
-                    cm->SetOption(ConfigOption.MoveMode, 0); // set standard mode
+                    mode = config.cameraRotateMoveMode.mode;
                 }
+
+                CameraMode = mode;
+
+                cm->SetOption(ConfigOption.MoveMode, (int)CameraMode); // set legacy mode
             }
 
             if (this.config.showWindow)
@@ -85,6 +128,58 @@ namespace HybridCamera
                 ImGui.Begin("HybridCam"); {
                     VirtualKey key;
                     float charwidth = ImGui.CalcTextSize("FF").X;
+                    bool changed = false;
+
+                    ImGui.Text($"Flags are {Convert.ToString(CameraManager.Instance()->Camera->CameraBase.UnkFlags, 2)}, Mode is {CameraMode}");
+                    ImGui.Text($"{Convert.ToString(CameraManager.Instance()->Camera->CameraBase.UnkUInt, 16)}");
+
+                    ImGui.Separator();
+                    DrawMoveModeConditionOption("auto-run", ref config.autorunMoveMode);
+                    DrawMoveModeConditionOption("camera rotation", ref config.cameraRotateMoveMode);
+                    if (ImGui.Checkbox("Use turning on frontpedal", ref config.useTurnOnFrontpedal))
+                    {
+                        KeybindHook.turnOnFrontpedal = config.useTurnOnFrontpedal;
+                        changed = true;
+                    }
+                    if (ImGui.Checkbox("Use turning on backpedal", ref config.useTurnOnBackpedal))
+                    {
+                        KeybindHook.turnOnBackpedal = config.useTurnOnBackpedal;
+                        changed = true;
+                    }
+
+                    ImGui.SetNextItemWidth(charwidth * 9);
+                    if (ImGui.BeginCombo($"Use turning on camera rotate (Probably leave this on None!)###turncameraturn", config.useTurnOnCameraTurn.ToString()))
+                    {
+                        for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++)
+                        {
+                            ImGui.SetNextItemWidth(charwidth * 8);
+                            if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)config.useTurnOnCameraTurn))
+                            {
+                                config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
+                                KeybindHook.cameraTurnMode = config.useTurnOnCameraTurn;
+                                changed = true;
+                            }
+                        }
+                        ImGui.EndCombo();
+                    }
+
+                    if (changed) {
+                        if (config.useTurnOnFrontpedal == false && config.useTurnOnBackpedal == false && config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled)
+                        {
+                            KeybindHook.DisableHook();
+                        }
+                        else if (KeybindHook.Enabled == false)
+                        {
+                            KeybindHook.EnableHook();
+                        }
+                    }
+
+                    if ((this.config.useTurnOnFrontpedal || this.config.useTurnOnBackpedal || config.useTurnOnCameraTurn != TurnOnCameraTurn.None) && KeybindHook.Enabled == false)
+                    {
+                        KeybindHook.EnableHook();
+                    }
+
+                    ImGui.Separator();
 
                     ImGui.TextDisabled("Add and remove the keys for legacy mode below");
 
@@ -94,7 +189,7 @@ namespace HybridCamera
                         ImGui.SetNextItemWidth(charwidth * 4);
                         if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString()))
                         {
-                            VirtualKey[] validKeys = KeyState.GetValidVirtualKeys();
+                            VirtualKey[] validKeys = Service.KeyState.GetValidVirtualKeys();
 
                             for (int qndex = 0; qndex < validKeys.Length; qndex++)
                             {
@@ -138,6 +233,8 @@ namespace HybridCamera
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
+
+            KeybindHook.DisableHook();
 
             this.commandManager.Dispose();
 
