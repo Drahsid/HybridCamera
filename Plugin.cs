@@ -174,11 +174,6 @@ namespace HybridCamera
                         }
                     }
 
-                    if ((this.config.useTurnOnFrontpedal || this.config.useTurnOnBackpedal || config.useTurnOnCameraTurn != TurnOnCameraTurn.None) && KeybindHook.Enabled == false)
-                    {
-                        KeybindHook.EnableHook();
-                    }
-
                     ImGui.Separator();
 
                     ImGui.TextDisabled("Add and remove the keys for legacy mode below");
@@ -220,6 +215,11 @@ namespace HybridCamera
                     ImGui.Separator();
                 }
                 ImGui.End();
+            }
+
+            if ((this.config.useTurnOnFrontpedal || this.config.useTurnOnBackpedal || config.useTurnOnCameraTurn != TurnOnCameraTurn.None) && KeybindHook.Enabled == false)
+            {
+                KeybindHook.EnableHook();
             }
         }
 
