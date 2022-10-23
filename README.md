@@ -1,5 +1,7 @@
 # HybridCamera
-A plugin for Dalamud with FFXIV which lets you slightly customize the movement/camera mode.
+A plugin for Dalamud with FFXIV which lets you customize the movement/camera mode. This plugin allows you to freely move in any direction at full speed.
 
-At the moment, this just lets you configure keys which switch the control scheme to legacy when pressed, and back to standard when unpressed. I would like to add mouse input (for example, forcing standard mode on lmb), but have not found a clean way to do this.
+To use this plugin, add `http://repo.modloader64.com/ffxiv/plugins.json` to your list of plugin repositories.
+
+
 
