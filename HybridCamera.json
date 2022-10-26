@@ -3,7 +3,8 @@
     "Name": "Hybrid Camera",
     "InternalName": "HybridCamera",
     "Description": "Hybrid camera/movement mode! Move freely!",
-    "RepoUrl": "https://github.com/Drahsid/HybridCamera"
+    "RepoUrl": "https://github.com/Drahsid/HybridCamera",
+    "DalamudApiLevel": 7
 }
 
 
