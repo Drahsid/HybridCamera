@@ -13,6 +13,8 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 
+[assembly: System.Reflection.AssemblyVersion("1.0.0.*")]
+
 namespace HybridCamera
 {
     public class Plugin : IDalamudPlugin
