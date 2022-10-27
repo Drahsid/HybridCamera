@@ -3,6 +3,7 @@
     "Name": "Hybrid Camera",
     "InternalName": "HybridCamera",
     "Description": "Hybrid camera/movement mode! Move freely!",
+    "Punchline": "Legacy and standard movement in one! Move freely!",
     "RepoUrl": "https://github.com/Drahsid/HybridCamera",
     "DalamudApiLevel": 7
 }
