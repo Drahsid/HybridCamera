@@ -131,9 +131,8 @@ namespace HybridCamera
                     VirtualKey key;
                     float charwidth = ImGui.CalcTextSize("FF").X;
                     bool changed = false;
-
-                    ImGui.Text($"Flags are {Convert.ToString(CameraManager.Instance()->Camera->CameraBase.UnkFlags, 2)}, Mode is {CameraMode}");
-                    ImGui.Text($"{Convert.ToString(CameraManager.Instance()->Camera->CameraBase.UnkUInt, 16)}");
+                    ImGui.Text($"Flags are {Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkFlags, 2)}, Mode is {CameraMode}");
+                    ImGui.Text($"{Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkUInt, 16)}");
 
                     ImGui.Separator();
                     DrawMoveModeConditionOption("auto-run", ref config.autorunMoveMode);

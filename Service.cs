@@ -57,7 +57,7 @@ namespace HybridCamera
 
         internal static unsafe bool PlayerIsRotatingCamera()
         {
-            CameraManager* cm = CameraManager.Instance();
+            CameraManager* cm = CameraManager.Instance;
             Camera* cam = null;
 
             if (cm == null)
