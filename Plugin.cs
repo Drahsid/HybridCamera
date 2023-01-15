@@ -101,8 +101,7 @@ namespace HybridCamera
 
         private void ToggleConfig()
         {
-            Globals.Config.showWindow = !Globals.Config.showWindow;
-            WindowSystem.GetWindow(ConfigWindow.ConfigWindowName).IsOpen = Globals.Config.showWindow;
+            WindowSystem.GetWindow(ConfigWindow.ConfigWindowName).IsOpen = !WindowSystem.GetWindow(ConfigWindow.ConfigWindowName).IsOpen;
         }
 
         [Command("/phcam")]
