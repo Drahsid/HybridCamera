@@ -28,6 +28,8 @@ namespace HybridCamera
 
         public string Name => "HybridCamera";
 
+        private MovementMode CameraMode = MovementMode.Standard;
+
         public Plugin(DalamudPluginInterface pluginInterface, CommandManager commandManager, ChatGui chat, ClientState clientState) {
             PluginInterface = pluginInterface;
             Chat = chat;
@@ -40,17 +42,73 @@ namespace HybridCamera
             // Initialize the UI
             WindowSystem = new WindowSystem(typeof(Plugin).AssemblyQualifiedName);
             WindowSystem.AddWindow(new ConfigWindow());
+            PluginInterface.UiBuilder.Draw += DrawUI;
+            PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
 
             // Load all of our commands
             CommandManager = new PluginCommandManager<Plugin>(this, commandManager);
 
             PluginInterface.Create<Service>();
-        }  
+        }
+
+        private unsafe void UpdateMoveStatePre()
+        {
+            ConfigModule* cm = ConfigModule.Instance();
+            MovementMode mode = MovementMode.Standard;
+
+            if (cm != null)
+            {
+                foreach (VirtualKey key in Globals.Config.legacyModeKeyList)
+                {
+                    if (Service.KeyState[key])
+                    {
+                        mode = MovementMode.Legacy;
+                        break;
+                    }
+                }
+
+                if (Globals.Config.autorunMoveMode.condition && InputManager.IsAutoRunning())
+                {
+                    mode = Globals.Config.autorunMoveMode.mode;
+                }
+
+                if (Globals.Config.cameraRotateMoveMode.condition && Service.PlayerIsRotatingCamera())
+                {
+                    mode = Globals.Config.cameraRotateMoveMode.mode;
+                }
+
+                CameraMode = mode;
+
+                cm->SetOption(ConfigOption.MoveMode, (int)CameraMode); // set legacy mode
+            }
+        }
+
+        // for stuff which may need to be run after stuff has changed
+        private void UpdateMoveStatePost()
+        {
+            if ((Globals.Config.useTurnOnFrontpedal || Globals.Config.useTurnOnBackpedal || Globals.Config.useTurnOnCameraTurn != TurnOnCameraTurn.None) && KeybindHook.Enabled == false)
+            {
+                KeybindHook.EnableHook();
+            }
+        }
+
+        private unsafe void DrawUI()
+        {
+            UpdateMoveStatePre();
+            WindowSystem.Draw();
+            UpdateMoveStatePost();
+        }
+
+        private void ToggleConfig()
+        {
+            Globals.Config.showWindow = !Globals.Config.showWindow;
+            WindowSystem.GetWindow(ConfigWindow.ConfigWindowName).IsOpen = Globals.Config.showWindow;
+        }
 
         [Command("/phcam")]
         [HelpMessage("Toggle the configuration window.")]
         public void OnPHCam(string command, string args) {
-            Globals.Config.showWindow = !Globals.Config.showWindow;
+            ToggleConfig();
         }
 
         #region IDisposable Support

@@ -14,12 +14,9 @@ namespace HybridCamera
 {
     public class ConfigWindow : Window, IDisposable
     {
-        private MovementMode CameraMode = MovementMode.Standard;
+        public static string ConfigWindowName = "Hybrid Camera Config";
 
-        public ConfigWindow() : base("Hybrid Camera Config")
-        {
-            this.Size = new Vector2(240, 240);
-        }
+        public ConfigWindow() : base(ConfigWindowName) {}
 
         private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg)
         {
@@ -42,136 +39,95 @@ namespace HybridCamera
             }
         }
 
-        public unsafe override void Draw()
+        public override void Draw()
         {
-            ConfigModule* cm = ConfigModule.Instance();
-            MovementMode mode = MovementMode.Standard;
+            VirtualKey key;
+            float charwidth = ImGui.CalcTextSize("FF").X;
+            bool changed = false;
+            //ImGui.Text($"Flags are {Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkFlags, 2)}, Mode is {CameraMode}");
+            //ImGui.Text($"{Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkUInt, 16)}");
 
-            if (cm != null)
+            ImGui.Separator();
+            DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode);
+            DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode);
+            if (ImGui.Checkbox("Use turning on frontpedal", ref Globals.Config.useTurnOnFrontpedal))
             {
-                foreach (VirtualKey key in Globals.Config.legacyModeKeyList)
-                {
-                    if (Service.KeyState[key])
-                    {
-                        mode = MovementMode.Legacy;
-                        break;
-                    }
-                }
-
-                if (Globals.Config.autorunMoveMode.condition && InputManager.IsAutoRunning())
-                {
-                    mode = Globals.Config.autorunMoveMode.mode;
-                }
-
-                if (Globals.Config.cameraRotateMoveMode.condition && Service.PlayerIsRotatingCamera())
-                {
-                    mode = Globals.Config.cameraRotateMoveMode.mode;
-                }
-
-                CameraMode = mode;
-
-                cm->SetOption(ConfigOption.MoveMode, (int)CameraMode); // set legacy mode
+                KeybindHook.turnOnFrontpedal = Globals.Config.useTurnOnFrontpedal;
+                changed = true;
+            }
+            if (ImGui.Checkbox("Use turning on backpedal", ref Globals.Config.useTurnOnBackpedal))
+            {
+                KeybindHook.turnOnBackpedal = Globals.Config.useTurnOnBackpedal;
+                changed = true;
             }
 
-            if (Globals.Config.showWindow)
+            ImGui.SetNextItemWidth(charwidth * 9);
+            if (ImGui.BeginCombo($"Use turning on camera rotate (Probably leave this on None!)###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString()))
             {
-                ImGui.Begin("HybridCam");
+                for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++)
                 {
-                    VirtualKey key;
-                    float charwidth = ImGui.CalcTextSize("FF").X;
-                    bool changed = false;
-                    //ImGui.Text($"Flags are {Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkFlags, 2)}, Mode is {CameraMode}");
-                    //ImGui.Text($"{Convert.ToString(CameraManager.Instance->Camera->CameraBase.UnkUInt, 16)}");
-
-                    ImGui.Separator();
-                    DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode);
-                    DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode);
-                    if (ImGui.Checkbox("Use turning on frontpedal", ref Globals.Config.useTurnOnFrontpedal))
+                    ImGui.SetNextItemWidth(charwidth * 8);
+                    if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn))
                     {
-                        KeybindHook.turnOnFrontpedal = Globals.Config.useTurnOnFrontpedal;
+                        Globals.Config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
+                        KeybindHook.cameraTurnMode = Globals.Config.useTurnOnCameraTurn;
                         changed = true;
                     }
-                    if (ImGui.Checkbox("Use turning on backpedal", ref Globals.Config.useTurnOnBackpedal))
-                    {
-                        KeybindHook.turnOnBackpedal = Globals.Config.useTurnOnBackpedal;
-                        changed = true;
-                    }
-
-                    ImGui.SetNextItemWidth(charwidth * 9);
-                    if (ImGui.BeginCombo($"Use turning on camera rotate (Probably leave this on None!)###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString()))
-                    {
-                        for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++)
-                        {
-                            ImGui.SetNextItemWidth(charwidth * 8);
-                            if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn))
-                            {
-                                Globals.Config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
-                                KeybindHook.cameraTurnMode = Globals.Config.useTurnOnCameraTurn;
-                                changed = true;
-                            }
-                        }
-                        ImGui.EndCombo();
-                    }
-
-                    if (changed)
-                    {
-                        if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled)
-                        {
-                            KeybindHook.DisableHook();
-                        }
-                        else if (KeybindHook.Enabled == false)
-                        {
-                            KeybindHook.EnableHook();
-                        }
-                    }
-
-                    ImGui.Separator();
-
-                    ImGui.TextDisabled("Add and remove the keys for legacy mode below");
-
-                    for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++)
-                    {
-                        key = Globals.Config.legacyModeKeyList[index];
-                        ImGui.SetNextItemWidth(charwidth * 4);
-                        if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString()))
-                        {
-                            VirtualKey[] validKeys = Service.KeyState.GetValidVirtualKeys();
-
-                            for (int qndex = 0; qndex < validKeys.Length; qndex++)
-                            {
-                                bool selected = key == validKeys[qndex];
-                                ImGui.SetNextItemWidth(charwidth * 12);
-                                if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected))
-                                {
-                                    Globals.Config.legacyModeKeyList[index] = validKeys[qndex];
-                                }
-                            }
-                            ImGui.EndCombo();
-                        }
-                        ImGui.SameLine();
-                        ImGui.SetNextItemWidth(charwidth * 4);
-                        if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete"))
-                        {
-                            Globals.Config.legacyModeKeyList.RemoveAt(index);
-                            break;
-                        }
-                    }
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(charwidth * 4);
-                    if (ImGui.Button("+##dropdown_add_new"))
-                    {
-                        Globals.Config.legacyModeKeyList.Add(VirtualKey.SPACE);
-                    }
-
-                    ImGui.Separator();
                 }
-                ImGui.End();
+                ImGui.EndCombo();
             }
 
-            if ((Globals.Config.useTurnOnFrontpedal || Globals.Config.useTurnOnBackpedal || Globals.Config.useTurnOnCameraTurn != TurnOnCameraTurn.None) && KeybindHook.Enabled == false)
+            if (changed)
             {
-                KeybindHook.EnableHook();
+                if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled)
+                {
+                    KeybindHook.DisableHook();
+                }
+                else if (KeybindHook.Enabled == false)
+                {
+                    KeybindHook.EnableHook();
+                }
             }
+
+            ImGui.Separator();
+
+            ImGui.TextDisabled("Add and remove the keys for legacy mode below");
+
+            for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++)
+            {
+                key = Globals.Config.legacyModeKeyList[index];
+                ImGui.SetNextItemWidth(charwidth * 4);
+                if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString()))
+                {
+                    VirtualKey[] validKeys = Service.KeyState.GetValidVirtualKeys();
+
+                    for (int qndex = 0; qndex < validKeys.Length; qndex++)
+                    {
+                        bool selected = key == validKeys[qndex];
+                        ImGui.SetNextItemWidth(charwidth * 12);
+                        if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected))
+                        {
+                            Globals.Config.legacyModeKeyList[index] = validKeys[qndex];
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(charwidth * 4);
+                if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete"))
+                {
+                    Globals.Config.legacyModeKeyList.RemoveAt(index);
+                    break;
+                }
+            }
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(charwidth * 4);
+            if (ImGui.Button("+##dropdown_add_new"))
+            {
+                Globals.Config.legacyModeKeyList.Add(VirtualKey.SPACE);
+            }
+
+            ImGui.Separator();
         }
 
         public void Dispose() { }

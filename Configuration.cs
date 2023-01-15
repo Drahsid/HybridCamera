@@ -37,24 +37,27 @@ namespace HybridCamera
         private DalamudPluginInterface pluginInterface;
 
         public Configuration() {
-            this.legacyModeKeyList = new List<VirtualKey>
-            {
-                VirtualKey.W,
-                VirtualKey.A,
-                VirtualKey.S,
-                VirtualKey.D
-            };
-            this.autorunMoveMode = new MoveModeCondition();
-            this.cameraRotateMoveMode = new MoveModeCondition();
-            this.useTurnOnBackpedal = true;
-            this.useTurnOnFrontpedal = true;
-            this.useTurnOnCameraTurn = TurnOnCameraTurn.None;
-            this.showWindow = false;
+            autorunMoveMode = new MoveModeCondition();
+            cameraRotateMoveMode = new MoveModeCondition();
+            useTurnOnBackpedal = true;
+            useTurnOnFrontpedal = true;
+            useTurnOnCameraTurn = TurnOnCameraTurn.None;
+            showWindow = false;
         }
 
         public void Initialize(DalamudPluginInterface pi)
         {
-            this.pluginInterface = pi;
+            pluginInterface = pi;
+            if (legacyModeKeyList== null)
+            {
+                legacyModeKeyList = new List<VirtualKey>
+                {
+                    VirtualKey.W,
+                    VirtualKey.A,
+                    VirtualKey.S,
+                    VirtualKey.D
+                };
+            }
             KeybindHook.turnOnFrontpedal = useTurnOnFrontpedal;
             KeybindHook.turnOnBackpedal = useTurnOnBackpedal;
             KeybindHook.cameraTurnMode = useTurnOnCameraTurn;
@@ -62,7 +65,7 @@ namespace HybridCamera
 
         public void Save()
         {
-            this.pluginInterface.SavePluginConfig(this);
+            pluginInterface.SavePluginConfig(this);
         }
     }
 }
