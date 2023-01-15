@@ -37,27 +37,8 @@ namespace HybridCamera
             this.clientState = clientState;
 
             // Get or create a configuration object
-            this.config = (Configuration)this.pluginInterface.GetPluginConfig();
-            if (this.config == null)
-            {
-                this.config = this.pluginInterface.Create<Configuration>();
-                this.config.legacyModeKeyList = new List<VirtualKey>();
-                this.config.legacyModeKeyList.Add(VirtualKey.W);
-                this.config.legacyModeKeyList.Add(VirtualKey.A);
-                this.config.legacyModeKeyList.Add(VirtualKey.S);
-                this.config.legacyModeKeyList.Add(VirtualKey.D);
-                this.config.autorunMoveMode = new MoveModeCondition();
-            }
-
-            if (this.config.autorunMoveMode == null)
-            {
-                this.config.autorunMoveMode = new MoveModeCondition();
-            }
-
-            if (this.config.cameraRotateMoveMode == null)
-            {
-                this.config.cameraRotateMoveMode = new MoveModeCondition();
-            }
+            this.config = pi.GetPluginConfig() as Configuration ?? new Configuration();
+            this.config.Initialize(pi);
 
             KeybindHook.turnOnFrontpedal = this.config.useTurnOnFrontpedal;
             KeybindHook.turnOnBackpedal = this.config.useTurnOnBackpedal;
