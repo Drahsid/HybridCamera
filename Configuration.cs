@@ -55,6 +55,9 @@ namespace HybridCamera
         public void Initialize(DalamudPluginInterface pi)
         {
             this.pluginInterface = pi;
+            KeybindHook.turnOnFrontpedal = useTurnOnFrontpedal;
+            KeybindHook.turnOnBackpedal = useTurnOnBackpedal;
+            KeybindHook.cameraTurnMode = useTurnOnCameraTurn;
         }
 
         public void Save()
