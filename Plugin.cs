@@ -3,17 +3,13 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
-using Dalamud.IoC;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HybridCamera.Attributes;
-using ImGuiNET;
 using System;
-using System.Collections.Generic;
 
-[assembly: System.Reflection.AssemblyVersion("1.0.0.*")]
+[assembly: System.Reflection.AssemblyVersion("1.0.*")]
 
 namespace HybridCamera
 {
