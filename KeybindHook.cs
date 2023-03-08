@@ -1,87 +1,90 @@
 ﻿using Dalamud.Hooking;
+using Dalamud.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static HybridCamera.KeybindHook;
 
 // credit to https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Tweaks/SmartStrafe.cs
 
-namespace HybridCamera
+namespace HybridCamera;
+
+internal static class KeybindHook
 {
-    internal static class KeybindHook
+    public enum KeybindID : int
     {
-        public enum KeybindID : int
-        {
-            MoveForward = 321,
-            MoveBack = 322,
-            TurnLeft = 323,
-            TurnRight = 324,
-            StrafeLeft = 325,
-            StrafeRight = 326
-        }
+        MoveForward = 321,
+        MoveBack = 322,
+        TurnLeft = 323,
+        TurnRight = 324,
+        StrafeLeft = 325,
+        StrafeRight = 326
+    }
 
-        public static bool Enabled = false;
-        public static bool turnOnFrontpedal = false;
-        public static bool turnOnBackpedal = false;
-        public static TurnOnCameraTurn cameraTurnMode = TurnOnCameraTurn.None;
+    public static bool Enabled = false;
+    public static bool turnOnFrontpedal = false;
+    public static bool turnOnBackpedal = false;
+    public static TurnOnCameraTurn cameraTurnMode = TurnOnCameraTurn.None;
 
-        internal const string CheckStrafeKeybindSig = "E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 07 01 BA 44 01 00 00";
+    internal const string CheckStrafeKeybindSig = "E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 07 01 BA 44 01 00 00";
 
-        [return: MarshalAs(UnmanagedType.U1)]
-        private delegate bool CheckStrafeKeybindDelegate(IntPtr ptr, KeybindID keybind);
+    private static IntPtr CheckStrafeKeybindPtr = IntPtr.Zero;
 
-        private static Hook<CheckStrafeKeybindDelegate> Hook;
+    [return: MarshalAs(UnmanagedType.U1)]
+    private delegate bool CheckStrafeKeybindDelegate(IntPtr ptr, KeybindID keybind);
 
-        public static void EnableHook()
-        {
-            if (Enabled) return;
-            Hook ??= new Hook<CheckStrafeKeybindDelegate>(Service.SigScanner.ScanText(CheckStrafeKeybindSig), CheckStrafeKeybind);
-            Hook.Enable();
-            Enabled = true;
-        }
+    private static Hook<CheckStrafeKeybindDelegate> Hook;
 
-        public static void DisableHook()
-        {
-            if (Enabled == false) return;
-            Hook.Disable();
-            Enabled = false;
-        }
+    public static void EnableHook()
+    {
+        if (Enabled) return;
+        CheckStrafeKeybindPtr = Service.SigScanner.ScanText(CheckStrafeKeybindSig);
+        PluginLog.Warning($"CheckStrafeKeybindPtr: {CheckStrafeKeybindPtr.ToString("X")}");
+        Hook ??= new Hook<CheckStrafeKeybindDelegate>(CheckStrafeKeybindPtr, CheckStrafeKeybind);
+        Hook.Enable();
+        Enabled = true;
 
-        // assuming the config option is on
-        private static bool CheckStrafeKeybind(IntPtr ptr, KeybindID keybind)
-        {
-            if (keybind == KeybindID.StrafeLeft || keybind == KeybindID.StrafeRight) {
-                bool rotatingCam = Service.PlayerIsRotatingCamera();
-                if (turnOnFrontpedal)
-                {
-                    if (Hook.Original(ptr, KeybindID.MoveForward))
-                    {
-                        return false;
-                    }
-                }
-                if (turnOnBackpedal) {
-                    if (Hook.Original(ptr, KeybindID.MoveBack))
-                    {
-                        return false;
-                    }
-                }
+        PluginLog.Information(CheckStrafeKeybindPtr.ToString("X"));
+    }
 
-                if (rotatingCam)
-                {
-                    if (cameraTurnMode == TurnOnCameraTurn.Turning)
-                    {
-                        return false;
-                    }
-                }
-                else if (cameraTurnMode == TurnOnCameraTurn.WithoutTurning)
+    public static void DisableHook()
+    {
+        if (Enabled == false) return;
+        Hook.Disable();
+        Enabled = false;
+    }
+
+    // assuming the config option is on
+    private static unsafe bool CheckStrafeKeybind(IntPtr ptr, KeybindID keybind)
+    {
+        if (keybind == KeybindID.StrafeLeft || keybind == KeybindID.StrafeRight) {
+            bool rotatingCam = Service.PlayerIsRotatingCamera();
+
+            if (turnOnFrontpedal)
+            {
+                if (Hook.Original(ptr, KeybindID.MoveForward))
                 {
                     return false;
                 }
             }
-            return Hook.Original(ptr, keybind);
+            if (turnOnBackpedal) {
+                if (Hook.Original(ptr, KeybindID.MoveBack))
+                {
+                    return false;
+                }
+            }
+
+            if (rotatingCam)
+            {
+                if (cameraTurnMode == TurnOnCameraTurn.Turning)
+                {
+                    return false;
+                }
+            }
+            else if (cameraTurnMode == TurnOnCameraTurn.WithoutTurning)
+            {
+                return false;
+            }
         }
+
+        return Hook.Original(ptr, keybind);
     }
 }

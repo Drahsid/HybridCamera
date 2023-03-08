@@ -30,6 +30,7 @@ namespace HybridCamera
         public bool useTurnOnFrontpedal;
         public TurnOnCameraTurn useTurnOnCameraTurn;
         public List<VirtualKey> legacyModeKeyList;
+        public bool shutUpConfigHelp;
         #endregion
 
         private DalamudPluginInterface pluginInterface;
@@ -40,6 +41,7 @@ namespace HybridCamera
             useTurnOnBackpedal = true;
             useTurnOnFrontpedal = true;
             useTurnOnCameraTurn = TurnOnCameraTurn.None;
+            shutUpConfigHelp = false;
         }
 
         public void Initialize(DalamudPluginInterface pi)
