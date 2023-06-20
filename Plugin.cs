@@ -61,6 +61,10 @@ public class Plugin : IDalamudPlugin
     {
         uint mode = (uint)MovementMode.Standard;
 
+        if (Service.KeyState == null) {
+            return;
+        }
+
         foreach (VirtualKey key in Globals.Config.legacyModeKeyList)
         {
             if (Service.KeyState[key])
