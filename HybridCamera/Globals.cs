@@ -2,23 +2,19 @@
 
 namespace HybridCamera;
 
-internal class Globals
-{
-    public static Configuration Config { get; set; }
+internal class Globals {
+    public static Configuration Config { get; set; } = null!;
 
-    internal static unsafe bool PlayerIsRotatingCamera()
-    {
-        GameCameraManager* cm = GameCameraManager.Instance;
-        Camera* cam = null;
+    internal static unsafe bool PlayerIsRotatingCamera() {
+        GameCameraManager* cm = GameCameraManager.Instance();
+        GameCamera* cam = null;
 
-        if (cm == null)
-        {
+        if (cm == null) {
             return false;
         }
 
         cam = cm->Camera;
-        if (cam == null)
-        {
+        if (cam == null) {
             return false;
         }
 

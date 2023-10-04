@@ -1,56 +1,36 @@
 ﻿using Dalamud.Game.ClientState.Keys;
-using Dalamud.Interface;
-using Dalamud.Interface.Windowing;
+using DrahsidLib;
 using ImGuiNET;
-using System;
 using System.Numerics;
 
 namespace HybridCamera;
 
-public class ConfigWindow : Window, IDisposable
-{
+public class ConfigWindow : WindowWrapper {
     public static string ConfigWindowName = "Hybrid Camera Config";
-    private Vector2 MinSize = new Vector2(500, 320);
-    private Vector2 AdjustedMinSize = new Vector2(500, 320);
+    private static Vector2 MinSize = new Vector2(500, 320);
 
-    public ConfigWindow() : base(ConfigWindowName) {}
+    public ConfigWindow() : base(ConfigWindowName, MinSize) {}
 
-    public static void DrawTooltip(string text) {
-        if (ImGui.IsItemHovered()) {
-            ImGui.SetTooltip(text);
-        }
-    }
-
-    private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg, string tooltip)
-    {
+    private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg, string tooltip) {
         float charwidth = ImGui.CalcTextSize("FF").X;
 
         ImGui.Checkbox($"Force {descriptor} to use mode: ", ref cfg.condition);
-        DrawTooltip(tooltip);
+        WindowDrawHelpers.DrawTooltip(tooltip);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(charwidth * 8);
-        if (ImGui.BeginCombo($"Movement Mode###{descriptor}combo", cfg.mode.ToString()))
-        {
-            for (int index = 0; index < (int)MovementMode.Count; index++)
-            {
+        if (ImGui.BeginCombo($"Movement Mode###{descriptor}combo", cfg.mode.ToString())) {
+            for (int index = 0; index < (int)MovementMode.Count; index++) {
                 ImGui.SetNextItemWidth(charwidth * 8);
-                if (ImGui.Selectable(((MovementMode)index).ToString(), index == (int)cfg.mode))
-                {
+                if (ImGui.Selectable(((MovementMode)index).ToString(), index == (int)cfg.mode)) {
                     cfg.mode = (MovementMode)index;
                 }
             }
             ImGui.EndCombo();
         }
-        DrawTooltip(tooltip);
+        WindowDrawHelpers.DrawTooltip(tooltip);
     }
 
-    public override void PreDraw() {
-        AdjustedMinSize = MinSize * ImGuiHelpers.GlobalScale;
-        ImGui.SetNextWindowSizeConstraints(AdjustedMinSize, new Vector2(float.MaxValue, float.MaxValue));
-    }
-
-    public override void Draw()
-    {
+    public override void Draw() {
         VirtualKey key;
         float charwidth = ImGui.CalcTextSize("FF").X;
         bool changed = false;
@@ -70,46 +50,51 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("General Settings");
         DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode, "When enabled, forces the selected movement mode while auto-running.");
         DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode, "When enabled, forces the selected movement mode while rotating the camera. This is probably redundant.");
-        if (ImGui.Checkbox("Use turning on frontpedal", ref Globals.Config.useTurnOnFrontpedal))
+
+        if (WindowDrawHelpers.DrawCheckboxTooltip(
+            "Use turning on frontpedal",
+            ref Globals.Config.useTurnOnFrontpedal,
+            "Tries to make the character turn instead of strafe when you are frontpedaling. This makes you move slightly faster on the horizontal axis (left and right), and slower on the vertical axis (forward).")
+            )
         {
             KeybindHook.turnOnFrontpedal = Globals.Config.useTurnOnFrontpedal;
             changed = true;
         }
-        DrawTooltip("Tries to make the character turn instead of strafe when you are frontpedaling. This makes you move slightly faster on the horizontal axis (left and right), and slower on the vertical axis (forward).");
-        if (ImGui.Checkbox("Use turning on backpedal", ref Globals.Config.useTurnOnBackpedal))
+
+        if (WindowDrawHelpers.DrawCheckboxTooltip(
+            "Use turning on backpedal",
+            ref Globals.Config.useTurnOnBackpedal,
+            "Tries to make the character turn instead of strafe when you are backpedaling. This makes you move overwhelmingly faster when strafing while backpedaling. Note that this does not work in first person.")
+            )
         {
             KeybindHook.turnOnBackpedal = Globals.Config.useTurnOnBackpedal;
             changed = true;
         }
-        DrawTooltip("Tries to make the character turn instead of strafe when you are backpedaling. This makes you move overwhelmingly faster when strafing while backpedaling. Note that this does not work in first person.");
 
-        ImGui.Separator();
-        ImGui.TextDisabled("Experimental");
-        ImGui.SetNextItemWidth(charwidth * 9);
-        if (ImGui.BeginCombo($"Use turning on camera rotate###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString()))
-        {
-            for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++)
-            {
-                ImGui.SetNextItemWidth(charwidth * 8);
-                if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn))
-                {
-                    Globals.Config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
-                    KeybindHook.cameraTurnMode = Globals.Config.useTurnOnCameraTurn;
-                    changed = true;
+        // Noone should really need to use this, so I'm just gonna hide it behind a config variable
+        if (Globals.Config.ShowExperimental) {
+            ImGui.Separator();
+            ImGui.TextDisabled("Experimental");
+            ImGui.SetNextItemWidth(charwidth * 9);
+            if (ImGui.BeginCombo($"Use turning on camera rotate###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString())) {
+                for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++) {
+                    ImGui.SetNextItemWidth(charwidth * 8);
+                    if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn)) {
+                        Globals.Config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
+                        KeybindHook.cameraTurnMode = Globals.Config.useTurnOnCameraTurn;
+                        changed = true;
+                    }
                 }
+                ImGui.EndCombo();
             }
-            ImGui.EndCombo();
+            WindowDrawHelpers.DrawTooltip("Tells the game that you are turning instead of strafing when you are turning the camera. You probably want this disabled.");
         }
-        DrawTooltip("Tells the game that you are turning instead of strafing when you are turning the camera. You probably want this disabled.");
 
-        if (changed)
-        {
-            if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled)
-            {
+        if (changed) {
+            if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled) {
                 KeybindHook.DisableHook();
             }
-            else if (KeybindHook.Enabled == false)
-            {
+            else if (KeybindHook.Enabled == false) {
                 KeybindHook.EnableHook();
             }
         }
@@ -118,20 +103,16 @@ public class ConfigWindow : Window, IDisposable
 
         ImGui.TextDisabled("Add and remove the keys for legacy mode below");
 
-        for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++)
-        {
+        for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++) {
             key = Globals.Config.legacyModeKeyList[index];
             ImGui.SetNextItemWidth(charwidth * 4);
-            if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString()))
-            {
-                VirtualKey[] validKeys = Service.KeyState.GetValidVirtualKeys();
+            if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString())) {
+                VirtualKey[] validKeys = (VirtualKey[])Service.KeyState.GetValidVirtualKeys();
 
-                for (int qndex = 0; qndex < validKeys.Length; qndex++)
-                {
+                for (int qndex = 0; qndex < validKeys.Length; qndex++) {
                     bool selected = key == validKeys[qndex];
                     ImGui.SetNextItemWidth(charwidth * 12);
-                    if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected))
-                    {
+                    if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected)) {
                         Globals.Config.legacyModeKeyList[index] = validKeys[qndex];
                     }
                 }
@@ -139,21 +120,17 @@ public class ConfigWindow : Window, IDisposable
             }
             ImGui.SameLine();
             ImGui.SetNextItemWidth(charwidth * 4);
-            if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete"))
-            {
+            if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete")) {
                 Globals.Config.legacyModeKeyList.RemoveAt(index);
                 break;
             }
         }
         ImGui.SameLine();
         ImGui.SetNextItemWidth(charwidth * 4);
-        if (ImGui.Button("+##dropdown_add_new"))
-        {
+        if (ImGui.Button("+##dropdown_add_new")) {
             Globals.Config.legacyModeKeyList.Add(VirtualKey.SPACE);
         }
 
         ImGui.Separator();
     }
-
-    public void Dispose() { }
 }
