@@ -12,6 +12,10 @@ internal static class Commands {
         });
     }
 
+    public static void Dispose() {
+        Service.CommandManager.RemoveHandler("/phcam");
+    }
+
     public static void ToggleConfig() {
         Windows.Config.IsOpen = !Windows.Config.IsOpen;
     }

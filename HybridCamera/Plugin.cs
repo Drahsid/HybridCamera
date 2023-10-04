@@ -65,6 +65,9 @@ public class Plugin : IDalamudPlugin {
         PluginInterface.SavePluginConfig(Globals.Config);
 
         Windows.Dispose();
+        PluginInterface.UiBuilder.OpenConfigUi -= Commands.ToggleConfig;
+
+        Commands.Dispose();
     }
 
     public void Dispose() {
