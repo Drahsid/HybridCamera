@@ -239,9 +239,9 @@ public static unsafe class GameConfig {
     }
 
     static GameConfig() {
-        System = new GameConfigSection(&Framework.Instance()->SystemConfig.CommonSystemConfig.ConfigBase, new[] { "PadMode" });
-        UiConfig = new GameConfigSection(&Framework.Instance()->SystemConfig.CommonSystemConfig.UiConfig);
-        UiControl = new GameConfigSection(&Framework.Instance()->SystemConfig.CommonSystemConfig.UiControlConfig);
+        System = new GameConfigSection(&Framework.Instance()->SystemConfig.SystemConfigBase.ConfigBase, new[] { "PadMode" });
+        UiConfig = new GameConfigSection(&Framework.Instance()->SystemConfig.SystemConfigBase.UiConfig);
+        UiControl = new GameConfigSection(&Framework.Instance()->SystemConfig.SystemConfigBase.UiControlConfig);
     }
 
 

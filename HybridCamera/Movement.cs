@@ -1,11 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Keys;
 using DrahsidLib;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HybridCamera;
 

@@ -51,6 +51,8 @@ public class ConfigWindow : WindowWrapper {
         DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode, "When enabled, forces the selected movement mode while auto-running.");
         DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode, "When enabled, forces the selected movement mode while rotating the camera. This is probably redundant.");
 
+        //ImGui.Checkbox("Controller Mode", ref Globals.Config.ControllerMode);
+
         if (WindowDrawHelpers.DrawCheckboxTooltip(
             "Use turning on frontpedal",
             ref Globals.Config.useTurnOnFrontpedal,

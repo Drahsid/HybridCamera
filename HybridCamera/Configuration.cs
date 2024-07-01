@@ -29,6 +29,7 @@ public class Configuration : IPluginConfiguration {
     public List<VirtualKey> legacyModeKeyList;
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
+    public bool ControllerMode;
     public bool HideTooltips;
     #endregion
 
@@ -41,6 +42,7 @@ public class Configuration : IPluginConfiguration {
         shutUpConfigHelp = false;
         ShowExperimental = false;
         HideTooltips = false;
+        ControllerMode = false;
         legacyModeKeyList = new List<VirtualKey>();
     }
 

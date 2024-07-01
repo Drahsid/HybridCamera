@@ -1,20 +1,24 @@
 ﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using DrahsidLib;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.Interop;
 using ImGuiNET;
 using System;
+using static FFXIVClientStructs.FFXIV.Client.Game.Control.InputManager;
 
 namespace HybridCamera;
 
 public class Plugin : IDalamudPlugin {
-    private DalamudPluginInterface PluginInterface;
+    private IDalamudPluginInterface PluginInterface;
     private IChatGui Chat { get; init; }
     private IClientState ClientState { get; init; }
     private ICommandManager CommandManager { get; init; }
 
     public string Name => "HybridCamera";
 
-    public Plugin(DalamudPluginInterface pluginInterface, ICommandManager commandManager, IChatGui chat, IClientState clientState) {
+    public Plugin(IDalamudPluginInterface pluginInterface, ICommandManager commandManager, IChatGui chat, IClientState clientState) {
         PluginInterface = pluginInterface;
         Chat = chat;
         ClientState = clientState;
@@ -25,6 +29,7 @@ public class Plugin : IDalamudPlugin {
         InitializeCommands();
         InitializeConfig();
         InitializeUI();
+        //MovementHook.Initialize();
     }
 
     public static void DrawTooltip(string text) {
@@ -46,6 +51,7 @@ public class Plugin : IDalamudPlugin {
         Windows.Initialize();
         PluginInterface.UiBuilder.Draw += DrawUI;
         PluginInterface.UiBuilder.OpenConfigUi += Commands.ToggleConfig;
+        PluginInterface.UiBuilder.OpenMainUi += Commands.ToggleConfig;
     }
 
     private unsafe void DrawUI() {
@@ -54,19 +60,22 @@ public class Plugin : IDalamudPlugin {
         Movement.UpdateMoveStatePost();
     }
 
+
     #region IDisposable Support
     protected virtual void Dispose(bool disposing) {
         if (!disposing) {
             return;
         }
 
-        KeybindHook.DisableHook();
+        KeybindHook.Dispose();
+        MovementHook.Dispose();
 
         PluginInterface.SavePluginConfig(Globals.Config);
 
         PluginInterface.UiBuilder.Draw -= DrawUI;
         Windows.Dispose();
         PluginInterface.UiBuilder.OpenConfigUi -= Commands.ToggleConfig;
+        PluginInterface.UiBuilder.OpenMainUi -= Commands.ToggleConfig;
 
         Commands.Dispose();
     }

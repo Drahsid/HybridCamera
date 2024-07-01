@@ -33,7 +33,8 @@ internal static class KeybindHook {
 
     public static void EnableHook() {
         if (Enabled) return;
-        CheckStrafeKeybindPtr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 07 01 BA 44 01 00 00");
+        //CheckStrafeKeybindPtr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 74 04 41 C6 07 01 BA 44 01 00 00");
+        CheckStrafeKeybindPtr = Service.SigScanner.ScanText("e8 ?? ?? ?? ?? 84 c0 74 04 41 c6 06 01 ba 44 01 00 00");
         Service.Logger.Warning($"CheckStrafeKeybindPtr: {CheckStrafeKeybindPtr.ToString("X")}");
         Hook = Service.GameInteropProvider.HookFromAddress<CheckStrafeKeybindDelegate>(CheckStrafeKeybindPtr, CheckStrafeKeybind);
 
@@ -78,6 +79,11 @@ internal static class KeybindHook {
         }
 
         return Hook.Original(ptr, keybind);
+    }
+
+    public static void Dispose() {
+        DisableHook();
+        Hook?.Dispose();
     }
 }
 
