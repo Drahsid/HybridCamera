@@ -5,22 +5,19 @@ using System.Collections.Generic;
 
 namespace HybridCamera;
 
-public enum TurnOnCameraTurn
-{
+public enum TurnOnCameraTurn {
     None = 0,
     Turning,
     WithoutTurning,
     Count
 }
 
-public class MoveModeCondition
-{
+public class MoveModeCondition {
     public MovementMode mode = MovementMode.Standard;
     public bool condition = false;
 }
 
-public class Configuration : IPluginConfiguration
-{
+public class Configuration : IPluginConfiguration {
     int IPluginConfiguration.Version { get; set; }
 
     #region Saved configuration values
@@ -37,8 +34,7 @@ public class Configuration : IPluginConfiguration
     public bool HideTooltips;
     #endregion
 
-    public Configuration()
-    {
+    public Configuration() {
         defaultMovementSetting = new MoveModeCondition();
         autorunMoveMode = new MoveModeCondition();
         cameraRotateMoveMode = new MoveModeCondition();
@@ -52,8 +48,7 @@ public class Configuration : IPluginConfiguration
         legacyModeKeyList = new List<VirtualKey>();
     }
 
-    public void Initialize()
-    {
+    public void Initialize() {
         KeybindHook.turnOnFrontpedal = useTurnOnFrontpedal;
         KeybindHook.turnOnBackpedal = useTurnOnBackpedal;
         KeybindHook.cameraTurnMode = useTurnOnCameraTurn;
@@ -69,8 +64,7 @@ public class Configuration : IPluginConfiguration
         }
     }
 
-    public void Save()
-    {
+    public void Save() {
         Service.Interface.SavePluginConfig(this);
     }
 }

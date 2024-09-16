@@ -5,28 +5,23 @@ using System.Numerics;
 
 namespace HybridCamera;
 
-public class ConfigWindow : WindowWrapper
-{
+public class ConfigWindow : WindowWrapper {
     public static string ConfigWindowName = "Hybrid Camera Config";
     private static Vector2 MinSize = new Vector2(500, 320);
 
-    public ConfigWindow() : base(ConfigWindowName, MinSize) { }
+    public ConfigWindow() : base(ConfigWindowName, MinSize) {}
 
-    private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg, string tooltip)
-    {
+    private void DrawMoveModeConditionOption(string descriptor, ref MoveModeCondition cfg, string tooltip) {
         float charwidth = ImGui.CalcTextSize("FF").X;
 
         ImGui.Checkbox($"Force {descriptor} to use mode: ", ref cfg.condition);
         WindowDrawHelpers.DrawTooltip(tooltip);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(charwidth * 8);
-        if (ImGui.BeginCombo($"Movement Mode###{descriptor}combo", cfg.mode.ToString()))
-        {
-            for (int index = 0; index < (int)MovementMode.Count; index++)
-            {
+        if (ImGui.BeginCombo($"Movement Mode###{descriptor}combo", cfg.mode.ToString())) {
+            for (int index = 0; index < (int)MovementMode.Count; index++) {
                 ImGui.SetNextItemWidth(charwidth * 8);
-                if (ImGui.Selectable(((MovementMode)index).ToString(), index == (int)cfg.mode))
-                {
+                if (ImGui.Selectable(((MovementMode)index).ToString(), index == (int)cfg.mode)) {
                     cfg.mode = (MovementMode)index;
                 }
             }
@@ -35,21 +30,18 @@ public class ConfigWindow : WindowWrapper
         WindowDrawHelpers.DrawTooltip(tooltip);
     }
 
-    public override void Draw()
-    {
+    public override void Draw() {
         VirtualKey key;
         float charwidth = ImGui.CalcTextSize("FF").X;
         bool changed = false;
 
-        if (!Globals.Config.shutUpConfigHelp)
-        {
+        if (!Globals.Config.shutUpConfigHelp) {
             ImGui.TextWrapped("Before using this plugin, I suggest making the following changes to your character config:");
             ImGui.TextWrapped("- Under Character Configuration -> Legacy Type, toggle the option \"Disable camera pivot\" on");
             ImGui.TextWrapped("- Under Character Configuration -> Camera Controls, set the option \"Standard Type Camera Auto-adjustment\" to \"Never\", and subsequently disable \"Enable Y-axis auto-adjustment\"");
             ImGui.TextWrapped("Additionally, you should try using strafe over turn movement, and vice-versa.");
             ImGui.TextWrapped("This means going into your keybinds and changing your primary movement keys from turn to strafe, and decide which feels the best to use while under the influence of this plugin.");
-            if (ImGui.Button("Ok!"))
-            {
+            if (ImGui.Button("Ok!")) {
                 Globals.Config.shutUpConfigHelp = true;
             }
             ImGui.Separator();
@@ -101,18 +93,14 @@ public class ConfigWindow : WindowWrapper
         }
 
         // Noone should really need to use this, so I'm just gonna hide it behind a config variable
-        if (Globals.Config.ShowExperimental)
-        {
+        if (Globals.Config.ShowExperimental) {
             ImGui.Separator();
             ImGui.TextDisabled("Experimental");
             ImGui.SetNextItemWidth(charwidth * 9);
-            if (ImGui.BeginCombo($"Use turning on camera rotate###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString()))
-            {
-                for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++)
-                {
+            if (ImGui.BeginCombo($"Use turning on camera rotate###turncameraturn", Globals.Config.useTurnOnCameraTurn.ToString())) {
+                for (int index = 0; index < (int)TurnOnCameraTurn.Count; index++) {
                     ImGui.SetNextItemWidth(charwidth * 8);
-                    if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn))
-                    {
+                    if (ImGui.Selectable(((TurnOnCameraTurn)index).ToString(), index == (int)Globals.Config.useTurnOnCameraTurn)) {
                         Globals.Config.useTurnOnCameraTurn = (TurnOnCameraTurn)index;
                         KeybindHook.cameraTurnMode = Globals.Config.useTurnOnCameraTurn;
                         changed = true;
@@ -123,14 +111,11 @@ public class ConfigWindow : WindowWrapper
             WindowDrawHelpers.DrawTooltip("Tells the game that you are turning instead of strafing when you are turning the camera. You probably want this disabled.");
         }
 
-        if (changed)
-        {
-            if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled)
-            {
+        if (changed) {
+            if (Globals.Config.useTurnOnFrontpedal == false && Globals.Config.useTurnOnBackpedal == false && Globals.Config.useTurnOnCameraTurn == TurnOnCameraTurn.None && KeybindHook.Enabled) {
                 KeybindHook.DisableHook();
             }
-            else if (KeybindHook.Enabled == false)
-            {
+            else if (KeybindHook.Enabled == false) {
                 KeybindHook.EnableHook();
             }
         }
@@ -139,20 +124,16 @@ public class ConfigWindow : WindowWrapper
 
         ImGui.TextDisabled("Add and remove the keys for legacy mode below");
 
-        for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++)
-        {
+        for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++) {
             key = Globals.Config.legacyModeKeyList[index];
             ImGui.SetNextItemWidth(charwidth * 4);
-            if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString()))
-            {
+            if (ImGui.BeginCombo("key##" + index.ToString() + "_" + key.ToString(), key.ToString())) {
                 VirtualKey[] validKeys = (VirtualKey[])Service.KeyState.GetValidVirtualKeys();
 
-                for (int qndex = 0; qndex < validKeys.Length; qndex++)
-                {
+                for (int qndex = 0; qndex < validKeys.Length; qndex++) {
                     bool selected = key == validKeys[qndex];
                     ImGui.SetNextItemWidth(charwidth * 12);
-                    if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected))
-                    {
+                    if (ImGui.Selectable(validKeys[qndex].ToString() + "##dropdown_" + index.ToString() + "_key_" + validKeys[qndex].ToString(), selected)) {
                         Globals.Config.legacyModeKeyList[index] = validKeys[qndex];
                     }
                 }
@@ -160,16 +141,14 @@ public class ConfigWindow : WindowWrapper
             }
             ImGui.SameLine();
             ImGui.SetNextItemWidth(charwidth * 4);
-            if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete"))
-            {
+            if (ImGui.Button("-##dropdown_" + index.ToString() + "_delete")) {
                 Globals.Config.legacyModeKeyList.RemoveAt(index);
                 break;
             }
         }
         ImGui.SameLine();
         ImGui.SetNextItemWidth(charwidth * 4);
-        if (ImGui.Button("+##dropdown_add_new"))
-        {
+        if (ImGui.Button("+##dropdown_add_new")) {
             Globals.Config.legacyModeKeyList.Add(VirtualKey.SPACE);
         }
 
