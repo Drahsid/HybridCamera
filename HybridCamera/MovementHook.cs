@@ -1,7 +1,5 @@
 ﻿using Dalamud.Hooking;
-using Dalamud.Game.ClientState.Objects.Types;
 using DrahsidLib;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System;
 using System.Runtime.InteropServices;
@@ -152,14 +150,13 @@ unsafe struct MoveControllerSubMemberForMine {
     [FieldOffset(0x3F)] public byte Unk_0x3F;
     [FieldOffset(0x40)] public byte Unk_0x40;
     [FieldOffset(0x80)] public Vector3 ZoningPosition; // this gets set to your positon when you are in a scene/zone transition
-    [FieldOffset(0xF2)] public byte Unk_0xF2;
-    [FieldOffset(0xF3)] public byte Unk_0xF3;
-    [FieldOffset(0xF4)] public byte Unk_0xF4;
-    [FieldOffset(0x80)] public Vector3 Unk_0x80;
     [FieldOffset(0x90)] public float MoveDir; // Relative direction (in radians) that  you are trying to move. Backwards is -PI, Left is HPI, Right is -HPI
     [FieldOffset(0x94)] public byte Unk_0x94;
     [FieldOffset(0xA0)] public Vector3 MoveForward; // direction output by MovementUpdate
     [FieldOffset(0xB0)] public float Unk_0xB0;
+    [FieldOffset(0xF2)] public byte Unk_0xF2;
+    [FieldOffset(0xF3)] public byte Unk_0xF3;
+    [FieldOffset(0xF4)] public byte Unk_0xF4;
     [FieldOffset(0x104)] public byte Unk_0x104; // If you were moving last frame, this value is 0, you moved th is frame, and you moved on only one axis, this can get set to 3
     [FieldOffset(0x110)] public Int32 WishdirChanged; // 1 when your movement direction has changed (0 when autorunning, for example). This is set to 2 if dont_rotate_with_camera is 0, and this is not 1
     [FieldOffset(0x114)] public float Wishdir_Horizontal; // Relative direction on the horizontal axis
@@ -171,120 +168,109 @@ unsafe struct MoveControllerSubMemberForMine {
 }
 
 internal class MovementHook {
-    [return: MarshalAs(UnmanagedType.U1)]
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    public unsafe delegate byte MovementUpdate0Delegate(MoveControllerSubMemberForMine* thisx);
-    // outputs wishdir_h, wishdir_v, rotatedir, did_backpedal, autorun
-    public unsafe delegate void MovementUpdate1Delegate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera);
-    // outputs direction
-    public unsafe delegate void MovementUpdate2Delegate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction);
-
     public unsafe delegate byte Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx);
+    [return: MarshalAs(UnmanagedType.U1)]
+    // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
+    public unsafe delegate void MovementDirectionUpdateDelegate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera);
+    // outputs direction
+    public unsafe delegate void MovementUpdateDelegate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction);
 
-    public unsafe delegate void TestDelegate(UnkTargetFollowStruct* unk1, IntPtr unk2);
+    public unsafe delegate void MovementUpdate2Delegate(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 arg4, byte arg5, byte arg6, UInt64 arg7, UInt64 arg8);
 
-    private static Hook<MovementUpdate0Delegate>? MovementUpdateHook0 { get; set; } = null!;
-    private static Hook<MovementUpdate1Delegate>? MovementUpdateHook1 { get; set; } = null!;
-    private static Hook<MovementUpdate2Delegate>? MovementUpdateHook2 { get; set; } = null!;
-    private static Hook<TestDelegate>? TestHook { get; set; }
+    private static Hook<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>? MoveControllerSubMemberForMine_vf1Hook { get; set; } = null!;
+    private static Hook<MovementDirectionUpdateDelegate>? MovementDirectionUpdateHook { get; set; } = null!;
+    private static Hook<MovementUpdateDelegate>? MovementUpdateHook { get; set; } = null!;
+    private static Hook<MovementUpdate2Delegate>? MovementUpdate2Hook { get; set; } = null!;
 
-    private static Hook<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>? MovementUpdateHook3 { get; set; } = null!;
-
-    private static IntPtr MovementUpdateHook0Ptr = IntPtr.Zero;
-    private static IntPtr MovementUpdateHook1Ptr = IntPtr.Zero;
-    private static IntPtr MovementUpdateHook2Ptr = IntPtr.Zero;
-    private static IntPtr MovementUpdateHook3Ptr = IntPtr.Zero;
-    private static IntPtr TestHookPtr = IntPtr.Zero;
+    private static IntPtr MoveControllerSubMemberForMine_vfPtr = IntPtr.Zero;
+    private static IntPtr MovementDirectionUpdatePtr = IntPtr.Zero;
+    private static IntPtr MovementUpdatePtr = IntPtr.Zero;
+    private static IntPtr MovementUpdate2Ptr = IntPtr.Zero;
 
     public static unsafe void Initialize() {
-        MovementUpdateHook0Ptr = Service.SigScanner.ScanText("48 8B C4 4C 89 48 20 53 57 41 56 41 57 48 81 EC 98 00 00 00 44 8B B9 10 01 00 00");
-        Service.Logger.Warning($"MovementUpdateHook0Ptr: {MovementUpdateHook0Ptr.ToString("X")}");
+        //MoveControllerSubMemberForMine_vfPtr = Service.SigScanner.ScanText("40 55 53 48 ?? ?? ?? ?? 48 81 ec ?? ?? 00 00 48 83 79 ?? 00");
+        //Service.Logger.Warning($"MoveControllerSubMemberForMine_vfPtr: {MoveControllerSubMemberForMine_vfPtr.ToString("X")}");
 
-        MovementUpdateHook1Ptr = Service.SigScanner.ScanText("48 8B C4 4C 89 48 20 53 57 41 56 41 57 48 81 EC 98 00 00 00");
-        Service.Logger.Warning($"MovementUpdateHook1Ptr: {MovementUpdateHook1Ptr.ToString("X")}");
+        MovementDirectionUpdatePtr = Service.SigScanner.ScanText("48 8b c4 4c 89 48 ?? 53 55 57 41 54 48 81 ec ?? 00 00 00");
+        Service.Logger.Warning($"MovementDirectionUpdatePtr: {MovementDirectionUpdatePtr.ToString("X")}");
 
-        MovementUpdateHook2Ptr = Service.SigScanner.ScanText("40 55 56 41 54 41 56 41 57 48 8D 6C 24 E0");
-        Service.Logger.Warning($"MovementUpdateHook2Ptr: {MovementUpdateHook2Ptr.ToString("X")}");
+        //MovementUpdatePtr = Service.SigScanner.ScanText("48 8b c4 48 89 70 ?? 48 89 78 ?? 55 41 56 41 57");
+        //Service.Logger.Warning($"MovementUpdatePtr: {MovementUpdatePtr.ToString("X")}");
 
-        MovementUpdateHook3Ptr = Service.SigScanner.ScanText("40 55 53 48 8d 6c 24 c8 48 81 ec 38 01 00 00");
-        Service.Logger.Warning($"MovementUpdateHook3Ptr: {MovementUpdateHook3Ptr.ToString("X")}");
+        //MovementUpdate2Ptr = Service.SigScanner.ScanText("48 89 5c 24 ?? 48 89 6c 24 ?? 48 89 74 24 ?? 48 89 7c 24 ?? 41 56 48 83 ec ?? f3 0f 10 4a");
+        //Service.Logger.Warning($"MovementUpdate2Ptr: {MovementUpdate2Ptr.ToString("X")}");
 
-        TestHookPtr = Service.SigScanner.ScanText("48 89 5c 24 08 48 89 74 24 10 57 48 83 ec 20 48 8b d9 48 8b fa 0f b6 89 59 05 00 00 be 00 00 00 e0");
-        Service.Logger.Warning($"TestHookPtr: {TestHookPtr.ToString("X")}");
+        //MoveControllerSubMemberForMine_vf1Hook = Service.GameInteropProvider.HookFromAddress<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>(MoveControllerSubMemberForMine_vfPtr, MoveControllerSubMemberForMine_vf1);
+        //MoveControllerSubMemberForMine_vf1Hook.Enable();
 
-        // crash
-        /*MovementUpdateHook0 = Service.GameInteropProvider.HookFromAddress<MovementUpdate0Delegate>(MovementUpdateHook0Ptr, MovementUpdate0);
-        MovementUpdateHook0.Enable();*/
+        MovementDirectionUpdateHook = Service.GameInteropProvider.HookFromAddress<MovementDirectionUpdateDelegate>(MovementDirectionUpdatePtr, MovementDirectionUpdate);
+        MovementDirectionUpdateHook.Enable();
 
-        MovementUpdateHook1 = Service.GameInteropProvider.HookFromAddress<MovementUpdate1Delegate>(MovementUpdateHook1Ptr, MovementUpdate1);
-        MovementUpdateHook1.Enable();
+        //MovementUpdateHook = Service.GameInteropProvider.HookFromAddress<MovementUpdateDelegate>(MovementUpdatePtr, MovementUpdate);
+        //MovementUpdateHook.Enable();
 
-        MovementUpdateHook2 = Service.GameInteropProvider.HookFromAddress<MovementUpdate2Delegate>(MovementUpdateHook2Ptr, MovementUpdate2);
-        MovementUpdateHook2.Enable();
-
-        MovementUpdateHook3 = Service.GameInteropProvider.HookFromAddress<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>(MovementUpdateHook3Ptr, MovementUpdate3);
-        MovementUpdateHook3.Enable();
-
-        TestHook = Service.GameInteropProvider.HookFromAddress<TestDelegate>(TestHookPtr, TestUpdate);
-        TestHook.Enable();
+        //MovementUpdate2Hook = Service.GameInteropProvider.HookFromAddress<MovementUpdate2Delegate>(MovementUpdate2Ptr, MovementUpdate2);
+        //MovementUpdate2Hook.Enable();
     }
 
     public static void Dispose() {
-        //MovementUpdateHook0?.Disable();
-        //MovementUpdateHook0?.Dispose();
-        MovementUpdateHook1?.Disable();
-        MovementUpdateHook1?.Dispose();
-        MovementUpdateHook2?.Disable();
-        MovementUpdateHook2?.Dispose();
-        MovementUpdateHook3?.Disable();
-        MovementUpdateHook3?.Dispose();
-        TestHook?.Disable();
-        TestHook?.Dispose();
+        //MoveControllerSubMemberForMine_vf1Hook?.Disable();
+        //MoveControllerSubMemberForMine_vf1Hook?.Dispose();
+        MovementDirectionUpdateHook?.Disable();
+        MovementDirectionUpdateHook?.Dispose();
+        //MovementUpdateHook?.Disable();
+        //MovementUpdateHook?.Dispose();
+        //MovementUpdate2Hook?.Disable();
+        //MovementUpdate2Hook?.Dispose();
     }
 
-    private static unsafe void TestUpdate(UnkTargetFollowStruct* unk1, IntPtr unk2)
-    {
-        Service.Logger.Info($"UnkTargetFollowStruct: {((IntPtr)unk1).ToString("X")}");
-        Service.Logger.Info($"Unk object IDs: {unk1->Unk_0x450.Unk_GameObjectID0.ToString("X")}; {unk1->Unk_0x450.Unk_GameObjectID1.ToString("X")}; {unk1->Unk_GameObjectID1.ToString("X")}");
-        Service.Logger.Info($"Follow Type: {unk1->FollowType.ToString("X")}");
-    
-        foreach (IGameObject obj in Service.ObjectTable)
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static unsafe byte MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx) {
+        return MoveControllerSubMemberForMine_vf1Hook.Original(thisx);
+    }
+
+    // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
+    public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera) {
+        MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+
+        float h = *wishdir_h;
+        float v = *wishdir_v;
+        if (h != 0 || v != 0)
         {
-            if (obj.EntityId == unk1->GameObjectIDToFollow)
+            GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
+            // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
+            if (h == 0)
             {
-                Service.Logger.Info($"{unk1->GameObjectIDToFollow.ToString("X")}: {obj.Name.TextValue}");
-                break;
+                if (Globals.Config.useTurnOnFrontpedal && v > 0)
+                {
+                    *align_with_camera = 0;
+                }
+
+                if (Globals.Config.useTurnOnBackpedal && v < 0)
+                {
+                    *align_with_camera = 0;
+                }
             }
         }
-
-        TestHook.Original(unk1, unk2);
-    }
-
-    [return: MarshalAs(UnmanagedType.U1)]
-    public static unsafe byte MovementUpdate0(MoveControllerSubMemberForMine* thisx) {
-        return MovementUpdateHook0.Original(thisx);
-    }
-
-    public static unsafe void MovementUpdate1(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera) {
-        MovementUpdateHook1.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
-    }
-
-    public static unsafe void MovementUpdate2(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction) {
-        MovementUpdateHook2.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
-    }
-
-    [return: MarshalAs(UnmanagedType.U1)]
-    public static unsafe byte MovementUpdate3(MoveControllerSubMemberForMine* thisx)
-    {
-        InputManager.MouseButtonHoldState* hold = InputManager.GetMouseButtonHoldState();
-        InputManager.MouseButtonHoldState original = *hold;
-        if (*hold == (InputManager.MouseButtonHoldState.Left | InputManager.MouseButtonHoldState.Right))
+        else
         {
-            *hold = InputManager.MouseButtonHoldState.None;
+            GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
         }
 
-        byte ret = MovementUpdateHook3.Original(thisx);
-        *hold = original;
-        return ret;
+        // rerun the function to get corrected values
+        *wishdir_h = 0;
+        *wishdir_v = 0;
+        *rotatedir = 0;
+        *autorun = 0;
+        MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+    }
+
+    public static unsafe void MovementUpdate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction) {
+        MovementUpdateHook.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
+    }
+
+    public static unsafe void MovementUpdate2(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 arg4, byte arg5, byte arg6, UInt64 arg7, UInt64 arg8)
+    {
+        MovementUpdate2Hook.Original(thisx, direction, arg3, arg4, arg5, arg6, arg7, arg8); // thisx->Moved indirectly gets updated in here if direction is laterally non-zero
     }
 }

@@ -1,12 +1,8 @@
 ﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using DrahsidLib;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.Interop;
 using ImGuiNET;
 using System;
-using static FFXIVClientStructs.FFXIV.Client.Game.Control.InputManager;
 
 namespace HybridCamera;
 
@@ -29,7 +25,7 @@ public class Plugin : IDalamudPlugin {
         InitializeCommands();
         InitializeConfig();
         InitializeUI();
-        //MovementHook.Initialize();
+        MovementHook.Initialize();
     }
 
     public static void DrawTooltip(string text) {
@@ -44,7 +40,6 @@ public class Plugin : IDalamudPlugin {
 
     private void InitializeConfig() {
         Globals.Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        Globals.Config.Initialize();
     }
 
     private void InitializeUI() {
@@ -55,9 +50,8 @@ public class Plugin : IDalamudPlugin {
     }
 
     private unsafe void DrawUI() {
-        Movement.UpdateMoveStatePre();
         Windows.System.Draw();
-        Movement.UpdateMoveStatePost();
+        KeybindHook.UpdateKeybindHook();
     }
 
 

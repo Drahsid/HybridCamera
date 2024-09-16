@@ -1,6 +1,7 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Game.ClientState.Keys;
 using DrahsidLib;
+using System;
 using System.Collections.Generic;
 
 namespace HybridCamera;
@@ -21,45 +22,25 @@ public class Configuration : IPluginConfiguration {
     int IPluginConfiguration.Version { get; set; }
 
     #region Saved configuration values
-    public MoveModeCondition autorunMoveMode;
-    public MoveModeCondition cameraRotateMoveMode;
+    [Obsolete] public MoveModeCondition? autorunMoveMode = null;
+    [Obsolete] public MoveModeCondition? cameraRotateMoveMode = null;
+    [Obsolete] public List<VirtualKey>? legacyModeKeyList = null;
+    [Obsolete] public TurnOnCameraTurn? useTurnOnCameraTurn = null;
+    [Obsolete] public bool ControllerMode = false;
+
     public bool useTurnOnBackpedal;
     public bool useTurnOnFrontpedal;
-    public TurnOnCameraTurn useTurnOnCameraTurn;
-    public List<VirtualKey> legacyModeKeyList;
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
-    public bool ControllerMode;
     public bool HideTooltips;
     #endregion
 
     public Configuration() {
-        autorunMoveMode = new MoveModeCondition();
-        cameraRotateMoveMode = new MoveModeCondition();
         useTurnOnBackpedal = true;
         useTurnOnFrontpedal = true;
-        useTurnOnCameraTurn = TurnOnCameraTurn.None;
         shutUpConfigHelp = false;
         ShowExperimental = false;
         HideTooltips = false;
-        ControllerMode = false;
-        legacyModeKeyList = new List<VirtualKey>();
-    }
-
-    public void Initialize() {
-        KeybindHook.turnOnFrontpedal = useTurnOnFrontpedal;
-        KeybindHook.turnOnBackpedal = useTurnOnBackpedal;
-        KeybindHook.cameraTurnMode = useTurnOnCameraTurn;
-        if (legacyModeKeyList == null)
-        {
-            legacyModeKeyList = new List<VirtualKey>
-            {
-                VirtualKey.W,
-                VirtualKey.A,
-                VirtualKey.S,
-                VirtualKey.D
-            };
-        }
     }
 
     public void Save() {
