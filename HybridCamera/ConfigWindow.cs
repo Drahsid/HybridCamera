@@ -26,15 +26,27 @@ public class ConfigWindow : WindowWrapper {
         ImGui.TextDisabled("General Settings");
 
         WindowDrawHelpers.DrawCheckboxTooltip(
-            "Use turning on frontpedal",
+            "Use turning on frontpedal (Forward smart strafe)",
             ref Globals.Config.useTurnOnFrontpedal,
-            "Tries to make the character turn instead of strafe when you are frontpedaling. This makes you move slightly faster on the horizontal axis (left and right), and slower on the vertical axis (forward)."
+            "Tries to make the character turn instead of strafe when you are frontpedaling. This slightly changes movement properties."
         );
 
         WindowDrawHelpers.DrawCheckboxTooltip(
-            "Use turning on backpedal",
+            "Use turning on backpedal (Backward smart strafe)",
             ref Globals.Config.useTurnOnBackpedal,
-            "Tries to make the character turn instead of strafe when you are backpedaling. This makes you move overwhelmingly faster when strafing while backpedaling. Note that this does not work in first person."
+            "Tries to make the character turn instead of strafe when you are backpedaling. This makes you move overwhelmingly faster when strafing while backpedaling. Only works when your movement mode is legacy."
+        );
+
+        WindowDrawHelpers.DrawCheckboxTooltip(
+            "Use legacy movement while moving",
+            ref Globals.Config.useLegacyWhileMoving,
+            "When disabled, uses the movement option selected in the game settings."
+        );
+
+        WindowDrawHelpers.DrawCheckboxTooltip(
+            "Fullspeed backpedal",
+            ref Globals.Config.fullspeedBackpedal,
+            "Makes the backpedaling motion full speed, instead of being 60% slower. This also allows you to backpedal at full speed in first person."
         );
 
         ImGui.Separator();

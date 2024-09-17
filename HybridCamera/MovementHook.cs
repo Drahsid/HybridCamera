@@ -127,11 +127,16 @@ unsafe struct UnkGameObjectStruct {
     [FieldOffset(0x101)] public byte Unk_0x101;
     [FieldOffset(0x1C0)] public Vector3 DesiredPosition;
     [FieldOffset(0x1D0)] public float NewRotation;
+    [FieldOffset(0x1D4)] public float Unk_0x1D4;
+    [FieldOffset(0x1E4)] public float Unk_0x1E4;
+    [FieldOffset(0x1F4)] public int Unk_0x1F4; // movement mode? determines speed selected from MoveControllerSubMemberForMine->MoveSpeedMaximums
     [FieldOffset(0x1FC)] public byte Unk_0x1FC;
+    [FieldOffset(0x1FE)] public byte Unk_0x1FE;
     [FieldOffset(0x1FF)] public byte Unk_0x1FF;
     [FieldOffset(0x200)] public byte Unk_0x200;
     [FieldOffset(0x2C6)] public byte Unk_0x2C6;
     [FieldOffset(0x3D0)] public CSGameObject* Actor; // Points to local player
+    [FieldOffset(0x348)] public byte Unk_0x348;
     [FieldOffset(0x3E0)] public byte Unk_0x3E0;
     [FieldOffset(0x3EC)] public float Unk_0x3EC; // This, 0x3F0, 0x418, and 0x419 seem to determine the direction (and where) you turn when turning around or facing left/right
     [FieldOffset(0x3F0)] public float Unk_0x3F0;
@@ -143,20 +148,26 @@ unsafe struct UnkGameObjectStruct {
 unsafe struct MoveControllerSubMemberForMine {
     [FieldOffset(0x10)] public Vector3 Direction; // direction?
     [FieldOffset(0x20)] public UnkGameObjectStruct* ActorStruct;
-    [FieldOffset(0x28)] public uint Unk_0x28;
+    [FieldOffset(0x28)] public float Unk_0x28;
+    [FieldOffset(0x38)] public float Unk_0x38;
     [FieldOffset(0x3C)] public byte Moved;
     [FieldOffset(0x3D)] public byte Rotated; // 1 when the character has rotated
     [FieldOffset(0x3E)] public byte MovementLock; // Pretty much forced auto run when nonzero. Maybe used for scene transitions?
     [FieldOffset(0x3F)] public byte Unk_0x3F;
     [FieldOffset(0x40)] public byte Unk_0x40;
+    [FieldOffset(0x44)] public float MoveSpeed;
+    [FieldOffset(0x50)] public float* MoveSpeedMaximums;
     [FieldOffset(0x80)] public Vector3 ZoningPosition; // this gets set to your positon when you are in a scene/zone transition
     [FieldOffset(0x90)] public float MoveDir; // Relative direction (in radians) that  you are trying to move. Backwards is -PI, Left is HPI, Right is -HPI
     [FieldOffset(0x94)] public byte Unk_0x94;
     [FieldOffset(0xA0)] public Vector3 MoveForward; // direction output by MovementUpdate
     [FieldOffset(0xB0)] public float Unk_0xB0;
+    [FieldOffset(0xB4)] public byte Unk_0xB4; // 
     [FieldOffset(0xF2)] public byte Unk_0xF2;
     [FieldOffset(0xF3)] public byte Unk_0xF3;
     [FieldOffset(0xF4)] public byte Unk_0xF4;
+    [FieldOffset(0xF5)] public byte Unk_0xF5;
+    [FieldOffset(0xF6)] public byte Unk_0xF6;
     [FieldOffset(0x104)] public byte Unk_0x104; // If you were moving last frame, this value is 0, you moved th is frame, and you moved on only one axis, this can get set to 3
     [FieldOffset(0x110)] public Int32 WishdirChanged; // 1 when your movement direction has changed (0 when autorunning, for example). This is set to 2 if dont_rotate_with_camera is 0, and this is not 1
     [FieldOffset(0x114)] public float Wishdir_Horizontal; // Relative direction on the horizontal axis
@@ -165,6 +176,8 @@ unsafe struct MoveControllerSubMemberForMine {
     [FieldOffset(0x121)] public byte Rotated1; // 1 when the character has rotated, with the exception of standard-mode turn rotation
     [FieldOffset(0x122)] public byte Unk_0x122;
     [FieldOffset(0x123)] public byte Unk_0x123;
+    [FieldOffset(0x125)] public byte Unk_0x125; // 1 when walking
+    [FieldOffset(0x12A)] public byte Unk_0x12A;
 }
 
 internal class MovementHook {
@@ -175,17 +188,23 @@ internal class MovementHook {
     // outputs direction
     public unsafe delegate void MovementUpdateDelegate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction);
 
-    public unsafe delegate void MovementUpdate2Delegate(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 arg4, byte arg5, byte arg6, UInt64 arg7, UInt64 arg8);
+    public unsafe delegate void MovementUpdate2Delegate(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 align_with_camera, byte arg5, byte arg6, Vector3* arg7, UInt64 arg8);
+
+    public unsafe delegate void MovementSpeedUpdateDelegate(MoveControllerSubMemberForMine* thisx);
 
     private static Hook<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>? MoveControllerSubMemberForMine_vf1Hook { get; set; } = null!;
     private static Hook<MovementDirectionUpdateDelegate>? MovementDirectionUpdateHook { get; set; } = null!;
     private static Hook<MovementUpdateDelegate>? MovementUpdateHook { get; set; } = null!;
     private static Hook<MovementUpdate2Delegate>? MovementUpdate2Hook { get; set; } = null!;
+    private static Hook<MovementSpeedUpdateDelegate>? MovementSpeedUpdateHook { get; set; } = null!;
 
     private static IntPtr MoveControllerSubMemberForMine_vfPtr = IntPtr.Zero;
     private static IntPtr MovementDirectionUpdatePtr = IntPtr.Zero;
     private static IntPtr MovementUpdatePtr = IntPtr.Zero;
     private static IntPtr MovementUpdate2Ptr = IntPtr.Zero;
+    private static IntPtr MovementSpeedUpdatePtr = IntPtr.Zero;
+
+    private static bool FullspeedBackpedal = false;
 
     public static unsafe void Initialize() {
         //MoveControllerSubMemberForMine_vfPtr = Service.SigScanner.ScanText("40 55 53 48 ?? ?? ?? ?? 48 81 ec ?? ?? 00 00 48 83 79 ?? 00");
@@ -200,6 +219,9 @@ internal class MovementHook {
         //MovementUpdate2Ptr = Service.SigScanner.ScanText("48 89 5c 24 ?? 48 89 6c 24 ?? 48 89 74 24 ?? 48 89 7c 24 ?? 41 56 48 83 ec ?? f3 0f 10 4a");
         //Service.Logger.Warning($"MovementUpdate2Ptr: {MovementUpdate2Ptr.ToString("X")}");
 
+        //MovementSpeedUpdatePtr = Service.SigScanner.ScanText("40 53 48 83 ec ?? 80 79 ?? 00 48 8b d9 0f ?? ?? ?? ?? ?? 48 89 ?? ?? ?? 48");
+        //Service.Logger.Warning($"MovementSpeedUpdatePtr: {MovementSpeedUpdatePtr.ToString("X")}");
+
         //MoveControllerSubMemberForMine_vf1Hook = Service.GameInteropProvider.HookFromAddress<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>(MoveControllerSubMemberForMine_vfPtr, MoveControllerSubMemberForMine_vf1);
         //MoveControllerSubMemberForMine_vf1Hook.Enable();
 
@@ -211,6 +233,9 @@ internal class MovementHook {
 
         //MovementUpdate2Hook = Service.GameInteropProvider.HookFromAddress<MovementUpdate2Delegate>(MovementUpdate2Ptr, MovementUpdate2);
         //MovementUpdate2Hook.Enable();
+
+        //MovementSpeedUpdateHook = Service.GameInteropProvider.HookFromAddress<MovementSpeedUpdateDelegate>(MovementSpeedUpdatePtr, MovementSpeedUpdate);
+        //MovementSpeedUpdateHook.Enable();
     }
 
     public static void Dispose() {
@@ -222,55 +247,80 @@ internal class MovementHook {
         //MovementUpdateHook?.Dispose();
         //MovementUpdate2Hook?.Disable();
         //MovementUpdate2Hook?.Dispose();
+        //MovementSpeedUpdateHook?.Disable();
+        //MovementSpeedUpdateHook?.Dispose();
     }
 
     [return: MarshalAs(UnmanagedType.U1)]
     public static unsafe byte MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx) {
-        return MoveControllerSubMemberForMine_vf1Hook.Original(thisx);
+        var ret = MoveControllerSubMemberForMine_vf1Hook.Original(thisx);
+        return ret;
     }
 
     // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
     public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera) {
-        MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
-
-        float h = *wishdir_h;
-        float v = *wishdir_v;
-        if (h != 0 || v != 0)
+        if (FullspeedBackpedal != Globals.Config.fullspeedBackpedal)
         {
-            GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
-            // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
-            if (h == 0)
+            FullspeedBackpedal = Globals.Config.fullspeedBackpedal;
+            if (Globals.Config.fullspeedBackpedal)
             {
-                if (Globals.Config.useTurnOnFrontpedal && v > 0)
-                {
-                    *align_with_camera = 0;
-                }
-
-                if (Globals.Config.useTurnOnBackpedal && v < 0)
-                {
-                    *align_with_camera = 0;
-                }
+                thisx->MoveSpeedMaximums[6] = thisx->MoveSpeedMaximums[4];
+            }
+            else
+            {
+                thisx->MoveSpeedMaximums[6] = thisx->MoveSpeedMaximums[4] * 0.4f;
             }
         }
-        else
-        {
-            GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
-        }
+        
 
-        // rerun the function to get corrected values
-        *wishdir_h = 0;
-        *wishdir_v = 0;
-        *rotatedir = 0;
-        *autorun = 0;
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+
+        if (Globals.Config.useLegacyWhileMoving)
+        {
+            float h = *wishdir_h;
+            float v = *wishdir_v;
+            if (h != 0 || v != 0)
+            {
+                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
+                // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
+                if (h == 0)
+                {
+                    if (Globals.Config.useTurnOnFrontpedal && v > 0)
+                    {
+                        *align_with_camera = 0;
+                    }
+
+                    if (Globals.Config.useTurnOnBackpedal && v < 0)
+                    {
+                        *align_with_camera = 0;
+                    }
+                }
+            }
+            else
+            {
+                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
+            }
+
+            // rerun the function to get corrected values
+            *wishdir_h = 0;
+            *wishdir_v = 0;
+            *rotatedir = 0;
+            *autorun = 0;
+            MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+        }
     }
 
     public static unsafe void MovementUpdate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction) {
         MovementUpdateHook.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
     }
 
-    public static unsafe void MovementUpdate2(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 arg4, byte arg5, byte arg6, UInt64 arg7, UInt64 arg8)
+    public static unsafe void MovementUpdate2(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 align_with_camera, byte arg5, byte arg6, Vector3* arg7, UInt64 arg8)
     {
-        MovementUpdate2Hook.Original(thisx, direction, arg3, arg4, arg5, arg6, arg7, arg8); // thisx->Moved indirectly gets updated in here if direction is laterally non-zero
+        MovementUpdate2Hook.Original(thisx, direction, arg3, align_with_camera, arg5, arg6, arg7, arg8); // thisx->Moved indirectly gets updated in here if direction is laterally non-zero
+    }
+
+    public static unsafe void MovementSpeedUpdate(MoveControllerSubMemberForMine* thisx)
+    {
+        MovementSpeedUpdateHook?.Original(thisx);
     }
 }

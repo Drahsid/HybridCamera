@@ -30,6 +30,8 @@ public class Configuration : IPluginConfiguration {
 
     public bool useTurnOnBackpedal;
     public bool useTurnOnFrontpedal;
+    public bool useLegacyWhileMoving;
+    public bool fullspeedBackpedal;
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
     public bool HideTooltips;
@@ -38,6 +40,8 @@ public class Configuration : IPluginConfiguration {
     public Configuration() {
         useTurnOnBackpedal = true;
         useTurnOnFrontpedal = true;
+        useLegacyWhileMoving = true;
+        fullspeedBackpedal = false;
         shutUpConfigHelp = false;
         ShowExperimental = false;
         HideTooltips = false;
