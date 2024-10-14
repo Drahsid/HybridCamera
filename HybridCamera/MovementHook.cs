@@ -204,7 +204,7 @@ internal class MovementHook {
     private static IntPtr MovementUpdate2Ptr = IntPtr.Zero;
     private static IntPtr MovementSpeedUpdatePtr = IntPtr.Zero;
 
-    private static bool FullspeedBackpedal = false;
+    //private static bool FullspeedBackpedal = false;
 
     public static unsafe void Initialize() {
         //MoveControllerSubMemberForMine_vfPtr = Service.SigScanner.ScanText("40 55 53 48 ?? ?? ?? ?? 48 81 ec ?? ?? 00 00 48 83 79 ?? 00");
@@ -259,7 +259,7 @@ internal class MovementHook {
 
     // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
     public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera) {
-        if (FullspeedBackpedal != Globals.Config.fullspeedBackpedal)
+        /*if (FullspeedBackpedal != Globals.Config.fullspeedBackpedal)
         {
             FullspeedBackpedal = Globals.Config.fullspeedBackpedal;
             if (Globals.Config.fullspeedBackpedal)
@@ -270,7 +270,7 @@ internal class MovementHook {
             {
                 thisx->MoveSpeedMaximums[6] = thisx->MoveSpeedMaximums[4] * 0.4f;
             }
-        }
+        }*/
         
 
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);

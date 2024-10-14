@@ -43,11 +43,11 @@ public class ConfigWindow : WindowWrapper {
             "When disabled, uses the movement option selected in the game settings."
         );
 
-        WindowDrawHelpers.DrawCheckboxTooltip(
+        /*WindowDrawHelpers.DrawCheckboxTooltip(
             "Fullspeed backpedal",
             ref Globals.Config.fullspeedBackpedal,
             "Makes the backpedaling motion full speed, instead of being 60% slower. This also allows you to backpedal at full speed in first person."
-        );
+        );*/
 
         ImGui.Separator();
     }
