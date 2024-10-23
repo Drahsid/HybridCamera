@@ -32,6 +32,7 @@ public class Configuration : IPluginConfiguration {
     public bool useTurnOnFrontpedal;
     public bool useLegacyWhileMoving;
     public bool useLegacyTurning;
+    public bool disableLRMouseMove;
     //public bool fullspeedBackpedal;
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
@@ -43,6 +44,7 @@ public class Configuration : IPluginConfiguration {
         useTurnOnFrontpedal = true;
         useLegacyWhileMoving = true;
         useLegacyTurning = true;
+        disableLRMouseMove = false;
         //fullspeedBackpedal = false;
         shutUpConfigHelp = false;
         ShowExperimental = false;

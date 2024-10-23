@@ -153,7 +153,7 @@ unsafe struct MoveControllerSubMemberForMine {
     [FieldOffset(0x3C)] public byte Moved;
     [FieldOffset(0x3D)] public byte Rotated; // 1 when the character has rotated
     [FieldOffset(0x3E)] public byte MovementLock; // Pretty much forced auto run when nonzero. Maybe used for scene transitions?
-    [FieldOffset(0x3F)] public byte Unk_0x3F;
+    [FieldOffset(0x3F)] public byte Unk_0x3F; // 1 when mouse-running (lmb + rmb)
     [FieldOffset(0x40)] public byte Unk_0x40;
     [FieldOffset(0x44)] public float MoveSpeed;
     [FieldOffset(0x50)] public float* MoveSpeedMaximums;
@@ -262,6 +262,13 @@ internal class MovementHook {
     {
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
 
+        if (Globals.Config.disableLRMouseMove && thisx->Unk_0x3F != 0 && thisx->WishdirChanged == 2 && *wishdir_v != 0)
+        {
+            thisx->Unk_0x3F = 0;
+            thisx->WishdirChanged = 0;
+            *wishdir_v = 0;
+        }
+
         if (!Globals.Config.useLegacyWhileMoving && !Globals.Config.useLegacyTurning)
         {
             return;
@@ -272,44 +279,47 @@ internal class MovementHook {
         float r = *rotatedir;
 
         MovementMode newMode = MovementMode.Standard;
-        if (Globals.Config.useLegacyTurning && r != 0)
+        if (Globals.Config.useLegacyWhileMoving)
         {
-            newMode = MovementMode.Legacy;
-        }
-
-        if (Globals.Config.useLegacyWhileMoving && (h != 0 || v != 0))
-        {
-            newMode = MovementMode.Legacy;
-
-            // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
-            if (h == 0)
+            if (Globals.Config.useLegacyTurning && r != 0)
             {
-                if (Globals.Config.useTurnOnFrontpedal && v > 0)
-                {
-                    *align_with_camera = 0;
-                }
+                newMode = MovementMode.Legacy;
+            }
 
-                if (Globals.Config.useTurnOnBackpedal && v < 0)
+            if (Globals.Config.useLegacyWhileMoving && (h != 0 || v != 0))
+            {
+                newMode = MovementMode.Legacy;
+
+                // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
+                if (h == 0)
                 {
-                    *align_with_camera = 0;
+                    if (Globals.Config.useTurnOnFrontpedal && v > 0)
+                    {
+                        *align_with_camera = 0;
+                    }
+
+                    if (Globals.Config.useTurnOnBackpedal && v < 0)
+                    {
+                        *align_with_camera = 0;
+                    }
                 }
             }
-        }
 
-        switch (newMode)
-        {
-            default:
-            case MovementMode.Standard:
-                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
-                break;
-            case MovementMode.Legacy:
-                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
-                *wishdir_h = 0;
-                *wishdir_v = 0;
-                *rotatedir = 0;
-                *autorun = 0;
-                MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
-                break;
+            switch (newMode)
+            {
+                default:
+                case MovementMode.Standard:
+                    GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
+                    break;
+                case MovementMode.Legacy:
+                    GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
+                    *wishdir_h = 0;
+                    *wishdir_v = 0;
+                    *rotatedir = 0;
+                    *autorun = 0;
+                    MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+                    break;
+            }
         }
     }
 

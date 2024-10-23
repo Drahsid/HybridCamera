@@ -46,7 +46,13 @@ public class ConfigWindow : WindowWrapper {
         WindowDrawHelpers.DrawCheckboxTooltip(
             "Use legacy movement when using turn inputs",
             ref Globals.Config.useLegacyTurning,
-            "When enabled, 'Turn Left/Right' movement will always behave as if you were using legacy movement."
+            "When enabled, 'Turn Left/Right' movement will always behave as if you were using legacy movement. Requires 'Use legacy movement while moving' to be enabled."
+        );
+
+        WindowDrawHelpers.DrawCheckboxTooltip(
+            "Disable LMB + RMB Mouse Auto Run",
+            ref Globals.Config.disableLRMouseMove,
+            "When enabled, you will not run forwards while holding left mouse + right mouse."
         );
 
         /*WindowDrawHelpers.DrawCheckboxTooltip(
