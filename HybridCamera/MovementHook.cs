@@ -258,55 +258,58 @@ internal class MovementHook {
     }
 
     // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
-    public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera) {
-        /*if (FullspeedBackpedal != Globals.Config.fullspeedBackpedal)
-        {
-            FullspeedBackpedal = Globals.Config.fullspeedBackpedal;
-            if (Globals.Config.fullspeedBackpedal)
-            {
-                thisx->MoveSpeedMaximums[6] = thisx->MoveSpeedMaximums[4];
-            }
-            else
-            {
-                thisx->MoveSpeedMaximums[6] = thisx->MoveSpeedMaximums[4] * 0.4f;
-            }
-        }*/
-        
-
+    public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera)
+    {
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
 
-        if (Globals.Config.useLegacyWhileMoving)
+        if (!Globals.Config.useLegacyWhileMoving && !Globals.Config.useLegacyTurning)
         {
-            float h = *wishdir_h;
-            float v = *wishdir_v;
-            if (h != 0 || v != 0)
-            {
-                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
-                // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
-                if (h == 0)
-                {
-                    if (Globals.Config.useTurnOnFrontpedal && v > 0)
-                    {
-                        *align_with_camera = 0;
-                    }
+            return;
+        }
 
-                    if (Globals.Config.useTurnOnBackpedal && v < 0)
-                    {
-                        *align_with_camera = 0;
-                    }
+        float h = *wishdir_h;
+        float v = *wishdir_v;
+        float r = *rotatedir;
+
+        MovementMode newMode = MovementMode.Standard;
+        if (Globals.Config.useLegacyTurning && r != 0)
+        {
+            newMode = MovementMode.Legacy;
+        }
+
+        if (Globals.Config.useLegacyWhileMoving && (h != 0 || v != 0))
+        {
+            newMode = MovementMode.Legacy;
+
+            // fix very specific circumstance where front/backpedaling would partially have standard behavior on first frame of movement
+            if (h == 0)
+            {
+                if (Globals.Config.useTurnOnFrontpedal && v > 0)
+                {
+                    *align_with_camera = 0;
+                }
+
+                if (Globals.Config.useTurnOnBackpedal && v < 0)
+                {
+                    *align_with_camera = 0;
                 }
             }
-            else
-            {
-                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
-            }
+        }
 
-            // rerun the function to get corrected values
-            *wishdir_h = 0;
-            *wishdir_v = 0;
-            *rotatedir = 0;
-            *autorun = 0;
-            MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+        switch (newMode)
+        {
+            default:
+            case MovementMode.Standard:
+                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Standard);
+                break;
+            case MovementMode.Legacy:
+                GameConfig.UiControl.Set("MoveMode", (int)MovementMode.Legacy);
+                *wishdir_h = 0;
+                *wishdir_v = 0;
+                *rotatedir = 0;
+                *autorun = 0;
+                MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+                break;
         }
     }
 

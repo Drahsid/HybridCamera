@@ -31,6 +31,7 @@ public class Configuration : IPluginConfiguration {
     public bool useTurnOnBackpedal;
     public bool useTurnOnFrontpedal;
     public bool useLegacyWhileMoving;
+    public bool useLegacyTurning;
     //public bool fullspeedBackpedal;
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
@@ -41,6 +42,7 @@ public class Configuration : IPluginConfiguration {
         useTurnOnBackpedal = true;
         useTurnOnFrontpedal = true;
         useLegacyWhileMoving = true;
+        useLegacyTurning = true;
         //fullspeedBackpedal = false;
         shutUpConfigHelp = false;
         ShowExperimental = false;

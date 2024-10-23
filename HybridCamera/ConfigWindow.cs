@@ -43,6 +43,12 @@ public class ConfigWindow : WindowWrapper {
             "When disabled, uses the movement option selected in the game settings."
         );
 
+        WindowDrawHelpers.DrawCheckboxTooltip(
+            "Use legacy movement when using turn inputs",
+            ref Globals.Config.useLegacyTurning,
+            "When enabled, 'Turn Left/Right' movement will always behave as if you were using legacy movement."
+        );
+
         /*WindowDrawHelpers.DrawCheckboxTooltip(
             "Fullspeed backpedal",
             ref Globals.Config.fullspeedBackpedal,
