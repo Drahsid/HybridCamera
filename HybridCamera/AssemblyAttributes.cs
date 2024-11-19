@@ -4,7 +4,7 @@
 [assembly: System.Reflection.AssemblyProduct("HybridCamera")]
 [assembly: System.Reflection.AssemblyTitle("HybridCamera")]
 
-[assembly: System.Reflection.AssemblyVersion("1.4.1")]
+[assembly: System.Reflection.AssemblyVersion("1.4.2")]
 
 #if DEBUG
 [assembly: System.Reflection.AssemblyConfiguration("Debug")]
