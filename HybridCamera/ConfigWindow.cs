@@ -1,5 +1,5 @@
 ﻿using DrahsidLib;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Numerics;
 
 namespace HybridCamera;

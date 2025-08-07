@@ -1,7 +1,7 @@
 ﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using DrahsidLib;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System;
 
 namespace HybridCamera;
