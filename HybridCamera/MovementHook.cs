@@ -22,42 +22,79 @@ enum UnkGameObjectStruct_Unk0x418Flags : byte {
     Unk_0x7 = (1 << 7)
 }
 
-// has member functions
-[StructLayout(LayoutKind.Explicit, Size = 0x56)]
-unsafe struct UnkTargetFollowStruct_Unk0x450
+[StructLayout(LayoutKind.Explicit, Size = 0x20)]
+unsafe struct UnkTargetFollowStruct_Unk0x2A0
 {
-    [FieldOffset(0x00)] public IntPtr vtable;
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 1
+    [FieldOffset(0x10)] public float Unk_0x10;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x18)]
+unsafe struct UnkTargetFollowStruct_Unk0x118
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 1
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x48)]
+unsafe struct UnkTargetFollowStruct_Unk0xC8
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 1
+    [FieldOffset(0x08)] public IntPtr vtable2; // 0 = ctor, length 1
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x60)]
+unsafe struct UnkTargetFollowStruct_FollowType4
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 3
     [FieldOffset(0x10)] public float Unk_0x10;
     [FieldOffset(0x14)] public float Unk_0x14;
     [FieldOffset(0x18)] public float Unk_0x18;
     [FieldOffset(0x20)] public float Unk_0x20;
     [FieldOffset(0x28)] public float Unk_0x28;
     [FieldOffset(0x30)] public Vector3 PlayerPosition;
-    [FieldOffset(0x40)] public uint Unk_GameObjectID0;
-    [FieldOffset(0x48)] public uint Unk_GameObjectID1;
-    [FieldOffset(0x50)] public int Unk_0x50;
-    [FieldOffset(0x54)] public short Unk_0x54;
+    [FieldOffset(0x48)] public uint GameObjectID0;
+    [FieldOffset(0x4C)] public uint GameObjectID1;
+    [FieldOffset(0x54)] public short FollowingTarget; // nonzero when following target
 }
 
-// possibly FFXIVClientStructs.FFXIV.Client.Game.Control.InputManager, ctor is ran after CameraManager and TargetSystem
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit, Size = 0x10)]
+unsafe struct UnkTargetFollowStruct_FollowType3
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 3
+    [FieldOffset(0x08)] public byte Unk_0x8;
+    [FieldOffset(0x09)] public byte Unk_0x9;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x10)]
+unsafe struct UnkTargetFollowStruct_FollowType2
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 3
+    [FieldOffset(0x08)] public uint GameObjectID;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x10)]
+unsafe struct UnkTargetFollowStruct_FollowType1
+{
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 3
+    [FieldOffset(0x08)] public byte Unk_0x8;
+}
+
+// Initialized after Client::Game::Control::CameraManager.ctor and Client::Game::Control::TargetSystem.Initialize
+[StructLayout(LayoutKind.Explicit, Size = 0x590)]
 unsafe struct UnkTargetFollowStruct
 {
-    [FieldOffset(0x10)] public IntPtr Unk_0x10;
+    [FieldOffset(0x00)] public IntPtr vtable; // 0 = ctor, length 2
+    [FieldOffset(0x10)] public IntPtr vtbl_Client__Game__Control__MoveControl__MoveControllerSubMemberForMine;
     [FieldOffset(0x30)] public ulong Unk_0x30;
     [FieldOffset(0x4C)] public byte Unk_0x4C;
     [FieldOffset(0x4D)] public byte Unk_0x4D;
     [FieldOffset(0x50)] public byte Unk_0x50;
-    [FieldOffset(0x150)] public ulong Unk_0x150;
-    [FieldOffset(0x180)] public ulong Unk_0x180;
-    [FieldOffset(0x188)] public ulong Unk_0x188;
-    [FieldOffset(0x1B6)] public byte Unk_0x1B6;
-    [FieldOffset(0x1C0)] public byte Unk_0x1C0; // used like a bitfield
-    [FieldOffset(0x1EC)] public uint Unk_0x1EC;
+    [FieldOffset(0x0C8)] public UnkTargetFollowStruct_Unk0xC8 Unk_0xC8;
+    [FieldOffset(0x118)] public UnkTargetFollowStruct_Unk0x118 Unk_0x118;
+    [FieldOffset(0x150)] public ulong Unk_0x150; // Client::Graphics::Vfx::VfxDataListenner (sizeof = 0xB0)
 
     // think some of these floats are arrays of 4
-    [FieldOffset(0x2A0)] public float Unk_0x2A0;
-    [FieldOffset(0x2B0)] public float Unk_0x2B0;
+    [FieldOffset(0x2A0)] public UnkTargetFollowStruct_Unk0x2A0 Unk_0x2A0;
     [FieldOffset(0x2C0)] public float Unk_0x2C0;
     [FieldOffset(0x2D0)] public float Unk_0x2D0;
     [FieldOffset(0x2E0)] public float Unk_0x2E0;
@@ -72,53 +109,47 @@ unsafe struct UnkTargetFollowStruct
     [FieldOffset(0x358)] public float Unk_0x358;
     [FieldOffset(0x368)] public float Unk_0x368;
 
-    [FieldOffset(0x3A0)] public IntPtr Unk_0x3A0;
-    [FieldOffset(0x3F0)] public ulong Unk_0x3F0;
-    [FieldOffset(0x410)] public uint Unk_0x410;
-    [FieldOffset(0x414)] public uint Unk_0x414;
-    [FieldOffset(0x418)] public uint Unk_0x418;
-    [FieldOffset(0x420)] public uint Unk_0x420;
-    [FieldOffset(0x424)] public uint Unk_0x424;
-    [FieldOffset(0x428)] public uint Unk_0x428;
-    [FieldOffset(0x430)] public uint GameObjectIDToFollow;
+    // 6.5 -> 7.3 added 0x20 bytes of floats?
+    [FieldOffset(0x36C)] public float Unk_0x36C;
+    [FieldOffset(0x370)] public float Unk_0x370;
+    [FieldOffset(0x374)] public float Unk_0x374;
+    [FieldOffset(0x378)] public float Unk_0x378;
+    [FieldOffset(0x37C)] public float Unk_0x37C;
+    [FieldOffset(0x380)] public float Unk_0x380;
+    [FieldOffset(0x384)] public float Unk_0x384;
+    [FieldOffset(0x388)] public float Unk_0x388;
+    //
+
+    [FieldOffset(0x3C0)] public IntPtr Unk_0x3C0;
+    [FieldOffset(0x410)] public ulong Unk_0x410;
+    [FieldOffset(0x430)] public uint Unk_0x430;
+    [FieldOffset(0x434)] public uint Unk_0x434;
     [FieldOffset(0x438)] public uint Unk_0x438;
+    [FieldOffset(0x440)] public uint Unk_0x440;
+    [FieldOffset(0x444)] public uint Unk_0x444;
+    [FieldOffset(0x448)] public uint Unk_0x448;
+    [FieldOffset(0x450)] public uint GameObjectIDToFollow;
+    [FieldOffset(0x458)] public uint Unk_0x458;
 
-    // possible union below
+    [FieldOffset(0x460)] public UnkTargetFollowStruct_FollowType3 FollowType3Data;
+    [FieldOffset(0x470)] public UnkTargetFollowStruct_FollowType4 FollowType4Data;
+    [FieldOffset(0x4D0)] public UnkTargetFollowStruct_FollowType2 FollowType2Data;
+    [FieldOffset(0x4E0)] public UnkTargetFollowStruct_FollowType1 FollowType1Data;
 
-    // start of some substruct (used for FollowType == 3?)
-    [FieldOffset(0x440)] public byte Unk_0x440;
-    [FieldOffset(0x448)] public byte Unk_0x448;
-    [FieldOffset(0x449)] public byte Unk_0x449;
-    // end of substruct
+    [FieldOffset(0x4F0)] public IntPtr Unk_0x4F0; // some sort of array (indexed by Unk_0x578?) unsure how large
 
-    // start of UnkTargetFollowStruct_Unk0x450 (used for FollowType == 4?)
-    [FieldOffset(0x450)] public UnkTargetFollowStruct_Unk0x450 Unk_0x450;
-    [FieldOffset(0x4A0)] public int Unk_0x4A0; // intersects UnkTargetFollowStruct_Unk0x450->0x50
-    [FieldOffset(0x4A4)] public byte Unk_0x4A4; // intersects UnkTargetFollowStruct_Unk0x450->0x54
-    [FieldOffset(0x4A5)] public byte FollowingTarget; // nonzero when following target (intersects UnkTargetFollowStruct_Unk0x450->0x54)
-    // end of substruct
-
-    [FieldOffset(0x4B0)] public ulong Unk_0x4B0; // start of some substruct (dunno where this one ends) (used for FollowType == 2?)
-    [FieldOffset(0x4B8)] public uint Unk_GameObjectID1;
-    [FieldOffset(0x4C0)] public byte Unk_0x4C0; // start of some substruct (dunno where this one ends) (used for FollowType == 1?)
-    [FieldOffset(0x4C8)] public byte Unk_0x4C8;
-
-    // possible union probably ends around here
-
-    [FieldOffset(0x4D0)] public IntPtr Unk_0x4D0; // some sort of array (indexed by Unk_0x558?) unsure how large
-
-    [FieldOffset(0x548)] public ulong Unk_0x548; // param_1->Unk_0x548 = (lpPerformanceCount->QuadPart * 1000) / lpFrequency->QuadPart;
-    [FieldOffset(0x550)] public float Unk_0x550;
-    [FieldOffset(0x554)] public int Unk_0x554; // seems to be some sort of counter or timer
-    [FieldOffset(0x558)] public byte Unk_0x558; // used as an index (?)
-    [FieldOffset(0x559)] public byte FollowType; // 2 faces the player away, 3 runs away, 4 runs towards, 0 is none
+    [FieldOffset(0x568)] public ulong Unk_0x568; // param_1->Unk_0x568 = (lpPerformanceCount->QuadPart * 1000) / lpFrequency->QuadPart;
+    [FieldOffset(0x570)] public float Unk_0x570;
+    [FieldOffset(0x574)] public int Unk_0x574; // seems to be some sort of counter or timer
+    [FieldOffset(0x578)] public byte Unk_0x578; // used as an index (?)
+    [FieldOffset(0x579)] public byte FollowType; // 2 faces the player away, 3 runs away, 4 runs towards, 0 is none
                                                  // unknown but known possible values: 1, 5
-    [FieldOffset(0x55B)] public byte Unk_0x55B;
-    [FieldOffset(0x55C)] public byte Unk_0x55C;
-    [FieldOffset(0x55D)] public byte Unk_0x55D;
-    [FieldOffset(0x55E)] public byte Unk_0x55E;
-    [FieldOffset(0x55F)] public byte Unk_0x55F;
-    [FieldOffset(0x560)] public byte Unk_0x560;
+    [FieldOffset(0x57B)] public byte Unk_0x57B;
+    [FieldOffset(0x57C)] public byte Unk_0x57C;
+    [FieldOffset(0x57D)] public byte Unk_0x57D;
+    [FieldOffset(0x57E)] public byte Unk_0x57E;
+    [FieldOffset(0x57F)] public byte Unk_0x57F;
+    [FieldOffset(0x580)] public byte Unk_0x580;
 }
 
 [StructLayout(LayoutKind.Explicit)]
@@ -180,7 +211,8 @@ unsafe struct MoveControllerSubMemberForMine {
     [FieldOffset(0x12A)] public byte Unk_0x12A;
 }
 
-internal class MovementHook {
+internal class MovementHook
+{
     public unsafe delegate byte Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx);
     [return: MarshalAs(UnmanagedType.U1)]
     // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
@@ -191,22 +223,27 @@ internal class MovementHook {
     public unsafe delegate void MovementUpdate2Delegate(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 align_with_camera, byte arg5, byte arg6, Vector3* arg7, UInt64 arg8);
 
     public unsafe delegate void MovementSpeedUpdateDelegate(MoveControllerSubMemberForMine* thisx);
+    public unsafe delegate void UnkTargetFollowStructUpdateDelegate(UnkTargetFollowStruct* thisx, IntPtr arg2);
 
     private static Hook<Client_Game_Control_MoveControl_MoveControllerSubMemberForMine_vf1>? MoveControllerSubMemberForMine_vf1Hook { get; set; } = null!;
     private static Hook<MovementDirectionUpdateDelegate>? MovementDirectionUpdateHook { get; set; } = null!;
     private static Hook<MovementUpdateDelegate>? MovementUpdateHook { get; set; } = null!;
     private static Hook<MovementUpdate2Delegate>? MovementUpdate2Hook { get; set; } = null!;
     private static Hook<MovementSpeedUpdateDelegate>? MovementSpeedUpdateHook { get; set; } = null!;
+    private static Hook<UnkTargetFollowStructUpdateDelegate>? UnkTargetFollowStructHook { get; set; } = null!;
 
     private static IntPtr MoveControllerSubMemberForMine_vfPtr = IntPtr.Zero;
     private static IntPtr MovementDirectionUpdatePtr = IntPtr.Zero;
     private static IntPtr MovementUpdatePtr = IntPtr.Zero;
     private static IntPtr MovementUpdate2Ptr = IntPtr.Zero;
     private static IntPtr MovementSpeedUpdatePtr = IntPtr.Zero;
+    private static IntPtr UnkTargetFollowStructUpdatePtr = IntPtr.Zero;
 
-    //private static bool FullspeedBackpedal = false;
 
-    public static unsafe void Initialize() {
+    private static IntPtr _MoveControllerSubMemberForMine = IntPtr.Zero;
+
+    public static unsafe void Initialize()
+    {
         //MoveControllerSubMemberForMine_vfPtr = Service.SigScanner.ScanText("40 55 53 48 ?? ?? ?? ?? 48 81 ec ?? ?? 00 00 48 83 79 ?? 00");
         //Service.Logger.Warning($"MoveControllerSubMemberForMine_vfPtr: {MoveControllerSubMemberForMine_vfPtr.ToString("X")}");
 
@@ -236,9 +273,14 @@ internal class MovementHook {
 
         //MovementSpeedUpdateHook = Service.GameInteropProvider.HookFromAddress<MovementSpeedUpdateDelegate>(MovementSpeedUpdatePtr, MovementSpeedUpdate);
         //MovementSpeedUpdateHook.Enable();
+
+        //UnkTargetFollowStructUpdatePtr = Service.SigScanner.ScanText("48 89 5c 24 ?? 48 89 74 24 ?? 57 48 83 ec ?? 48 8b d9 48 8b fa 0f b6 89 ?? ?? 00 00 be 00 00 00 e0");
+        //UnkTargetFollowStructHook = Service.GameInteropProvider.HookFromAddress<UnkTargetFollowStructUpdateDelegate>(UnkTargetFollowStructUpdatePtr, UnkTargetFollowStruct_Update);
+        //UnkTargetFollowStructHook.Enable();
     }
 
-    public static void Dispose() {
+    public static void Dispose()
+    {
         //MoveControllerSubMemberForMine_vf1Hook?.Disable();
         //MoveControllerSubMemberForMine_vf1Hook?.Dispose();
         MovementDirectionUpdateHook?.Disable();
@@ -249,10 +291,14 @@ internal class MovementHook {
         //MovementUpdate2Hook?.Dispose();
         //MovementSpeedUpdateHook?.Disable();
         //MovementSpeedUpdateHook?.Dispose();
+
+        //UnkTargetFollowStructHook.Disable();
+        //UnkTargetFollowStructHook.Dispose();
     }
 
     [return: MarshalAs(UnmanagedType.U1)]
-    public static unsafe byte MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx) {
+    public static unsafe byte MoveControllerSubMemberForMine_vf1(MoveControllerSubMemberForMine* thisx)
+    {
         var ret = MoveControllerSubMemberForMine_vf1Hook.Original(thisx);
         return ret;
     }
@@ -268,6 +314,8 @@ internal class MovementHook {
             thisx->WishdirChanged = 0;
             *wishdir_v = 0;
         }
+
+        _MoveControllerSubMemberForMine = (IntPtr)thisx;
 
         if (!Globals.Config.useLegacyWhileMoving && !Globals.Config.useLegacyTurning)
         {
@@ -323,7 +371,8 @@ internal class MovementHook {
         }
     }
 
-    public static unsafe void MovementUpdate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction) {
+    public static unsafe void MovementUpdate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction)
+    {
         MovementUpdateHook.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
     }
 
@@ -335,5 +384,10 @@ internal class MovementHook {
     public static unsafe void MovementSpeedUpdate(MoveControllerSubMemberForMine* thisx)
     {
         MovementSpeedUpdateHook?.Original(thisx);
+    }
+
+    public static unsafe void UnkTargetFollowStruct_Update(UnkTargetFollowStruct* thisx, IntPtr arg2)
+    {
+        UnkTargetFollowStructHook?.Original(thisx, arg2);
     }
 }
