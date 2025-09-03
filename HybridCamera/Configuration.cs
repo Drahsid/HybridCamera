@@ -37,6 +37,7 @@ public class Configuration : IPluginConfiguration {
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
     public bool HideTooltips;
+    public bool KeybindMode;
     public bool Enabled;
     #endregion
 
@@ -51,7 +52,25 @@ public class Configuration : IPluginConfiguration {
         shutUpConfigHelp = false;
         ShowExperimental = false;
         HideTooltips = false;
+        KeybindMode = false;
         Enabled = true;
+
+        autorunMoveMode = new MoveModeCondition();
+        cameraRotateMoveMode = new MoveModeCondition();
+    }
+
+    public void PostInit()
+    {
+        if (legacyModeKeyList == null || legacyModeKeyList.Count == 0)
+        {
+            legacyModeKeyList = new List<VirtualKey>
+            {
+                VirtualKey.W,
+                VirtualKey.A,
+                VirtualKey.S,
+                VirtualKey.D
+            };
+        }
     }
 
     public void Save() {

@@ -40,6 +40,7 @@ public class Plugin : IDalamudPlugin {
 
     private void InitializeConfig() {
         Globals.Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Globals.Config.PostInit();
     }
 
     private void InitializeUI() {
@@ -53,7 +54,11 @@ public class Plugin : IDalamudPlugin {
     {
         Windows.System.Draw();
         
-        if (Globals.Config.Enabled == false)
+        if (Globals.Config.Enabled)
+        {
+            if (Globals.Config.KeybindMode) OriginalMovement.UpdateMoveState();
+        }
+        else
         {
             KeybindHook.Enabled = false;
         }
