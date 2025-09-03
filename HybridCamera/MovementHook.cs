@@ -52,8 +52,8 @@ unsafe struct UnkTargetFollowStruct_FollowType4
     [FieldOffset(0x20)] public float Unk_0x20;
     [FieldOffset(0x28)] public float Unk_0x28;
     [FieldOffset(0x30)] public Vector3 PlayerPosition;
-    [FieldOffset(0x48)] public uint GameObjectID0;
-    [FieldOffset(0x4C)] public uint GameObjectID1;
+    [FieldOffset(0x44)] public uint GameObjectID0;
+    [FieldOffset(0x48)] public uint GameObjectID1;
     [FieldOffset(0x54)] public short FollowingTarget; // nonzero when following target
 }
 
@@ -307,6 +307,8 @@ internal class MovementHook
     public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera)
     {
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+
+        if (Globals.Config.Enabled == false) return;
 
         if (Globals.Config.disableLRMouseMove && thisx->Unk_0x3F != 0 && thisx->WishdirChanged == 2 && *wishdir_v != 0)
         {

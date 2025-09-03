@@ -26,6 +26,12 @@ public class ConfigWindow : WindowWrapper {
         ImGui.TextDisabled("General Settings");
 
         WindowDrawHelpers.DrawCheckboxTooltip(
+            "Enabled",
+            ref Globals.Config.Enabled,
+            "Hybrid Camera Behavior enabled?"
+        );
+
+        WindowDrawHelpers.DrawCheckboxTooltip(
             "Use turning on frontpedal (Forward smart strafe)",
             ref Globals.Config.useTurnOnFrontpedal,
             "Tries to make the character turn instead of strafe when you are frontpedaling. This slightly changes movement properties."

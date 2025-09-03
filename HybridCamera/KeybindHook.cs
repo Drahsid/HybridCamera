@@ -28,14 +28,20 @@ internal static class KeybindHook {
 
     public static void EnableHook() {
         if (Enabled) return;
-        CheckStrafeKeybindPtr = Service.SigScanner.ScanText("e8 ?? ?? ?? ?? 84 c0 74 04 41 c6 06 01 ba 44 01 00 00");
-        Service.Logger.Warning($"CheckStrafeKeybindPtr: {CheckStrafeKeybindPtr.ToString("X")}");
-        Hook = Service.GameInteropProvider.HookFromAddress<CheckStrafeKeybindDelegate>(CheckStrafeKeybindPtr, CheckStrafeKeybind);
+
+        if (CheckStrafeKeybindPtr == IntPtr.Zero)
+        {
+            CheckStrafeKeybindPtr = Service.SigScanner.ScanText("e8 ?? ?? ?? ?? 84 c0 74 04 41 c6 06 01 ba 44 01 00 00");
+            Service.Logger.Warning($"CheckStrafeKeybindPtr: {CheckStrafeKeybindPtr.ToString("X")}");
+        }
+
+        if (Hook == null)
+        {
+            Hook = Service.GameInteropProvider.HookFromAddress<CheckStrafeKeybindDelegate>(CheckStrafeKeybindPtr, CheckStrafeKeybind);
+        }
 
         Hook.Enable();
         Enabled = true;
-
-        Service.Logger.Information(CheckStrafeKeybindPtr.ToString("X"));
     }
 
     public static void DisableHook() {
@@ -66,7 +72,7 @@ internal static class KeybindHook {
 
     public static void UpdateKeybindHook()
     {
-        if (Enabled == false
+        if (Enabled == false && Globals.Config.Enabled == true
             && (Globals.Config.useTurnOnFrontpedal || Globals.Config.useTurnOnBackpedal))
         {
             EnableHook();

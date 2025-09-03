@@ -37,9 +37,11 @@ public class Configuration : IPluginConfiguration {
     public bool shutUpConfigHelp;
     public bool ShowExperimental;
     public bool HideTooltips;
+    public bool Enabled;
     #endregion
 
-    public Configuration() {
+    public Configuration()
+    {
         useTurnOnBackpedal = true;
         useTurnOnFrontpedal = true;
         useLegacyWhileMoving = true;
@@ -49,6 +51,7 @@ public class Configuration : IPluginConfiguration {
         shutUpConfigHelp = false;
         ShowExperimental = false;
         HideTooltips = false;
+        Enabled = true;
     }
 
     public void Save() {

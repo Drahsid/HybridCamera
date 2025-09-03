@@ -49,8 +49,14 @@ public class Plugin : IDalamudPlugin {
         PluginInterface.UiBuilder.OpenMainUi += Commands.ToggleConfig;
     }
 
-    private unsafe void DrawUI() {
+    private unsafe void DrawUI()
+    {
         Windows.System.Draw();
+        
+        if (Globals.Config.Enabled == false)
+        {
+            KeybindHook.Enabled = false;
+        }
         KeybindHook.UpdateKeybindHook();
     }
 
