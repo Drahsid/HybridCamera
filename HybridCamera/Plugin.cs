@@ -54,11 +54,7 @@ public class Plugin : IDalamudPlugin {
     {
         Windows.System.Draw();
         
-        if (Globals.Config.Enabled)
-        {
-            if (Globals.Config.KeybindMode) OriginalMovement.UpdateMoveState();
-        }
-        else
+        if (Globals.Config.Enabled == false)
         {
             KeybindHook.Enabled = false;
         }

@@ -306,10 +306,22 @@ internal class MovementHook
     // outputs wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun
     public static unsafe void MovementDirectionUpdate(MoveControllerSubMemberForMine* thisx, float* wishdir_h, float* wishdir_v, float* rotatedir, byte* align_with_camera, byte* autorun, byte dont_rotate_with_camera)
     {
+        bool shouldContinue = true;
+
+        if (Globals.Config.Enabled == false)
+        {
+            shouldContinue = false;
+        }
+        else if (Globals.Config.KeybindMode == true)
+        {
+            OriginalMovement.UpdateMoveState();
+            shouldContinue = false;
+        }
+        
         MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
 
-        if (Globals.Config.Enabled == false) return;
-
+        if (!shouldContinue) return;
+        
         if (Globals.Config.disableLRMouseMove && thisx->Unk_0x3F != 0 && thisx->WishdirChanged == 2 && *wishdir_v != 0)
         {
             thisx->Unk_0x3F = 0;
