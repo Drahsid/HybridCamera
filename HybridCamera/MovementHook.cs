@@ -318,7 +318,7 @@ internal class MovementHook
             shouldContinue = false;
         }
         
-        MovementDirectionUpdateHook.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
+        MovementDirectionUpdateHook?.Original(thisx, wishdir_h, wishdir_v, rotatedir, align_with_camera, autorun, dont_rotate_with_camera);
 
         if (!shouldContinue) return;
         
@@ -387,12 +387,12 @@ internal class MovementHook
 
     public static unsafe void MovementUpdate(MoveControllerSubMemberForMine* thisx, float wishdir_h, float wishdir_v, char arg4, byte align_with_camera, Vector3* direction)
     {
-        MovementUpdateHook.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
+        MovementUpdateHook?.Original(thisx, wishdir_h, wishdir_v, arg4, align_with_camera, direction);
     }
 
     public static unsafe void MovementUpdate2(MoveControllerSubMemberForMine* thisx, Vector3* direction, byte arg3, UInt64 align_with_camera, byte arg5, byte arg6, Vector3* arg7, UInt64 arg8)
     {
-        MovementUpdate2Hook.Original(thisx, direction, arg3, align_with_camera, arg5, arg6, arg7, arg8); // thisx->Moved indirectly gets updated in here if direction is laterally non-zero
+        MovementUpdate2Hook?.Original(thisx, direction, arg3, align_with_camera, arg5, arg6, arg7, arg8); // thisx->Moved indirectly gets updated in here if direction is laterally non-zero
     }
 
     public static unsafe void MovementSpeedUpdate(MoveControllerSubMemberForMine* thisx)
