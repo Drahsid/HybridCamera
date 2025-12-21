@@ -33,20 +33,22 @@ public static class OriginalMovement {
             return;
         }
 
-        foreach (VirtualKey key in Globals.Config.legacyModeKeyList) {
+#pragma warning disable CS0612 // Supress Obsolete member warning
+        foreach (VirtualKey key in Globals.Config.legacyModeKeyList!) {
             if (Service.KeyState[key]) {
                 mode = (uint)MovementMode.Legacy;
                 break;
             }
         }
 
-        if (Globals.Config.autorunMoveMode.condition && InputManager.IsAutoRunning()) {
+        if (Globals.Config.autorunMoveMode!.condition && InputManager.IsAutoRunning()) {
             mode = (uint)Globals.Config.autorunMoveMode.mode;
         }
 
-        if (Globals.Config.cameraRotateMoveMode.condition && PlayerIsRotatingCamera()) {
+        if (Globals.Config.cameraRotateMoveMode!.condition && PlayerIsRotatingCamera()) {
             mode = (uint)Globals.Config.cameraRotateMoveMode.mode;
         }
+#pragma warning restore CS0612
 
         CameraMode = (MovementMode)mode;
         GameConfig.UiControl.Set("MoveMode", mode);

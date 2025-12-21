@@ -37,13 +37,14 @@ public class ConfigWindow : WindowWrapper {
 
     private void DrawOldConfig()
     {
+#pragma warning disable CS0612 // Supress Obsolete member warning
         VirtualKey key;
         float charwidth = ImGui.CalcTextSize("FF").X;
 
-        DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode, "When enabled, forces the selected movement mode while auto-running.");
-        DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode, "When enabled, forces the selected movement mode while rotating the camera. This is probably redundant.");
+        DrawMoveModeConditionOption("auto-run", ref Globals.Config.autorunMoveMode!, "When enabled, forces the selected movement mode while auto-running.");
+        DrawMoveModeConditionOption("camera rotation", ref Globals.Config.cameraRotateMoveMode!, "When enabled, forces the selected movement mode while rotating the camera. This is probably redundant.");
 
-        for (int index = 0; index < Globals.Config.legacyModeKeyList.Count; index++)
+        for (int index = 0; index < Globals.Config.legacyModeKeyList!.Count; index++)
         {
             key = Globals.Config.legacyModeKeyList[index];
             ImGui.SetNextItemWidth(charwidth * 4);
@@ -76,6 +77,7 @@ public class ConfigWindow : WindowWrapper {
         {
             Globals.Config.legacyModeKeyList.Add(VirtualKey.SPACE);
         }
+#pragma warning restore CS0612
     }
 
     private void DrawConfig()

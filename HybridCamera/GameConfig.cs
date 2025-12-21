@@ -66,7 +66,7 @@ public static unsafe class GameConfig {
 
         public uint ConfigCount => configBase->ConfigCount;
 
-        public GameConfigSection(ConfigBase* configBase, string[] ignoredNames = null) {
+        public GameConfigSection(ConfigBase* configBase, string[]? ignoredNames = null) {
             this.configBase = configBase;
 
             if (ignoredNames != null) {
@@ -110,7 +110,7 @@ public static unsafe class GameConfig {
             }
         }
 
-        public bool TryGetEntry(string name, out EntryWrapper result, StringComparison? nameComparison = null) {
+        public bool TryGetEntry(string name, out EntryWrapper? result, StringComparison? nameComparison = null) {
             result = null;
             if (!TryGetIndex(name, out var i, nameComparison)) return false;
             var e = configBase->ConfigEntry;

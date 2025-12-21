@@ -55,6 +55,7 @@ public class Configuration : IPluginConfiguration {
         KeybindMode = false;
         Enabled = true;
 
+#pragma warning disable CS0612 // Supress Obsolete member warning
         autorunMoveMode = new MoveModeCondition();
         cameraRotateMoveMode = new MoveModeCondition();
     }
@@ -71,6 +72,7 @@ public class Configuration : IPluginConfiguration {
                 VirtualKey.D
             };
         }
+#pragma warning restore CS0612
     }
 
     public void Save() {
